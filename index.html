@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LU87 TV Canal 11 — Gestión de Licencias</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --blue:       #1a5fa8;
+  --blue-light: #e8f2fc;
+  --blue-mid:   #3b82c4;
+  --green:      #2d7a4f;
+  --green-light:#e6f5ee;
+  --amber:      #b45309;
+  --amber-light:#fef3c7;
+  --red:        #b91c1c;
+  --red-light:  #fee2e2;
+  --gray-50:    #f9fafb;
+  --gray-100:   #f3f4f6;
+  --gray-200:   #e5e7eb;
+  --gray-300:   #d1d5db;
+  --gray-400:   #9ca3af;
+  --gray-500:   #6b7280;
+  --gray-700:   #374151;
+  --gray-900:   #111827;
+  --white:      #ffffff;
+  --radius-sm:  6px;
+  --radius-md:  10px;
+  --radius-lg:  16px;
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.08);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.10);
+  --font:       'DM Sans', sans-serif;
+  --font-mono:  'DM Mono', monospace;
+}
+html, body { height: 100%; font-family: var(--font); background: var(--gray-50); color: var(--gray-900); font-size: 14px; line-height: 1.5; }
+input, select, textarea, button { font-family: var(--font); font-size: 14px; }
+button { cursor: pointer; }
+a { color: var(--blue); }
+
+/* ── LOGIN ────────────────────────────────────────────────── */
+#login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(135deg, #0f2f5a 0%, #1a5fa8 60%, #2d7a4f 100%);
+}
+.login-card {
+  background: var(--white); border-radius: var(--radius-lg); padding: 2.5rem;
+  width: 360px; box-shadow: 0 20px 60px rgba(0,0,0,.25);
+}
+.login-logo {
+  width: 56px; height: 56px; background: var(--blue); border-radius: var(--radius-md);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 18px; font-weight: 600; margin: 0 auto 1.25rem;
+  letter-spacing: -0.5px;
+}
+.login-title { text-align: center; font-size: 18px; font-weight: 600; color: var(--gray-900); margin-bottom: 4px; }
+.login-sub { text-align: center; font-size: 12px; color: var(--gray-500); margin-bottom: 2rem; }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-700); margin-bottom: 5px; }
+input[type=text], input[type=password], input[type=email],
+input[type=number], input[type=date], select, textarea {
+  width: 100%; padding: 9px 12px; border: 1px solid var(--gray-300);
+  border-radius: var(--radius-sm); background: var(--white); color: var(--gray-900);
+  transition: border-color .15s;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,95,168,.12); }
+input[readonly] { background: var(--gray-50); color: var(--gray-500); cursor: default; }
+.btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; border: none; transition: all .15s; }
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { background: #174f8a; }
+.btn-secondary { background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-300); }
+.btn-secondary:hover { background: var(--gray-50); }
+.btn-danger { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
+.btn-danger:hover { background: #fecaca; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+.btn-full { width: 100%; justify-content: center; }
+.login-demo { text-align: center; font-size: 11px; color: var(--gray-400); margin-top: 1rem; }
+
+/* ── APP SHELL ────────────────────────────────────────────── */
+#app { display: none; height: 100vh; flex-direction: column; }
+.topbar {
+  height: 52px; background: var(--white); border-bottom: 1px solid var(--gray-200);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 1.5rem; flex-shrink: 0; box-shadow: var(--shadow-sm);
+}
+.topbar-brand { display: flex; align-items: center; gap: 10px; }
+.topbar-logo { width: 30px; height: 30px; background: var(--blue); border-radius: 7px; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 10px; font-weight: 600; }
+.topbar-name { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+.topbar-user { display: flex; align-items: center; gap: 10px; }
+.avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--blue-light); color: var(--blue); font-size: 11px; font-weight: 600; display: flex; align-items: center; justify-content: center; }
+.topbar-info { font-size: 12px; }
+.topbar-info .uname { font-weight: 500; color: var(--gray-900); }
+.topbar-info .urole { color: var(--gray-500); font-size: 11px; }
+.badge-role { font-size: 10px; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
+.badge-role.admin { background: #fef3c7; color: #92400e; }
+.badge-role.agent { background: var(--blue-light); color: var(--blue); }
+.btn-logout { background: none; border: none; color: var(--gray-400); padding: 4px; border-radius: 6px; font-size: 16px; line-height: 1; }
+.btn-logout:hover { background: var(--gray-100); color: var(--gray-700); }
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.layout { display: flex; flex: 1; overflow: hidden; }
+.sidebar {
+  width: 210px; background: var(--white); border-right: 1px solid var(--gray-200);
+  padding: 1rem 0.75rem; overflow-y: auto; flex-shrink: 0;
+}
+.nav-section { margin-bottom: 1.25rem; }
+.nav-section-label { font-size: 10px; font-weight: 600; color: var(--gray-400); text-transform: uppercase; letter-spacing: .06em; padding: 0 0.5rem; margin-bottom: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 8px; padding: 7px 10px;
+  border-radius: var(--radius-sm); font-size: 13px; color: var(--gray-600);
+  cursor: pointer; transition: all .12s; user-select: none;
+}
+.nav-item:hover { background: var(--gray-100); color: var(--gray-900); }
+.nav-item.active { background: var(--blue-light); color: var(--blue); font-weight: 500; }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.main { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+/* ── CARDS & LAYOUT ───────────────────────────────────────── */
+.screen { display: none; }
+.screen.active { display: block; }
+.page-header { margin-bottom: 1.5rem; }
+.page-header h2 { font-size: 20px; font-weight: 600; color: var(--gray-900); }
+.page-header p { font-size: 13px; color: var(--gray-500); margin-top: 2px; }
+.card { background: var(--white); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow-sm); }
+.card-header { font-size: 13px; font-weight: 600; color: var(--gray-700); margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+.card-header svg { width: 15px; height: 15px; color: var(--blue); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.col-full { grid-column: 1 / -1; }
+.form-group { display: flex; flex-direction: column; gap: 4px; }
+.form-hint { font-size: 11px; color: var(--gray-500); }
+
+/* ── MÉTRICAS ─────────────────────────────────────────────── */
+.metric-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 1rem; }
+.metric-card { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-md); padding: 1rem; }
+.metric-label { font-size: 11px; color: var(--gray-500); font-weight: 500; margin-bottom: 4px; }
+.metric-value { font-size: 26px; font-weight: 600; color: var(--gray-900); line-height: 1; }
+.metric-sub { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+/* ── BADGES ───────────────────────────────────────────────── */
+.badge { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
+.badge-registrada { background: #fef3c7; color: #92400e; }
+.badge-presentada { background: var(--blue-light); color: var(--blue); }
+.badge-aprobada   { background: var(--green-light); color: var(--green); }
+.badge-rechazada  { background: var(--red-light); color: var(--red); }
+.badge-anulada    { background: var(--gray-100); color: var(--gray-500); }
+.badge-activo     { background: var(--green-light); color: var(--green); }
+.badge-inactivo   { background: var(--gray-100); color: var(--gray-500); }
+
+/* ── TABLA ────────────────────────────────────────────────── */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { font-size: 11px; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--gray-200); text-align: left; white-space: nowrap; }
+td { padding: 9px 10px; border-bottom: 1px solid var(--gray-100); color: var(--gray-700); }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--gray-50); }
+
+/* ── TIPO DE LICENCIA SELECTOR ────────────────────────────── */
+.lic-selector { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.lic-btn {
+  border: 1.5px solid var(--gray-200); border-radius: var(--radius-md); padding: 14px 10px;
+  text-align: center; cursor: pointer; transition: all .15s; background: var(--white);
+}
+.lic-btn:hover { border-color: var(--blue); background: var(--blue-light); }
+.lic-btn.selected { border-color: var(--blue); background: var(--blue-light); }
+.lic-btn .lt { font-size: 15px; font-weight: 600; color: var(--gray-900); }
+.lic-btn .ls { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+.lic-btn.selected .lt { color: var(--blue); }
+
+/* ── DISPONIBILIDAD ───────────────────────────────────────── */
+.avail-box { border-radius: var(--radius-sm); padding: 12px 14px; margin-bottom: 1rem; font-size: 13px; }
+.avail-ok  { background: var(--green-light); border: 1px solid #a7f3d0; color: var(--green); }
+.avail-no  { background: var(--red-light);   border: 1px solid #fca5a5; color: var(--red); }
+.avail-warn{ background: var(--amber-light); border: 1px solid #fcd34d; color: var(--amber); }
+.avail-title { font-weight: 600; margin-bottom: 3px; }
+.avail-detail { font-size: 12px; opacity: .85; }
+
+/* ── CALENDARIO MINI ──────────────────────────────────────── */
+.cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.cal-nav-title { font-size: 14px; font-weight: 600; color: var(--gray-900); }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.cal-head { font-size: 10px; font-weight: 600; color: var(--gray-400); text-align: center; padding: 4px 0; }
+.cal-day {
+  font-size: 12px; text-align: center; padding: 6px 2px; border-radius: 6px;
+  cursor: pointer; color: var(--gray-700); transition: all .1s; user-select: none;
+}
+.cal-day:hover:not(.cal-empty):not(.cal-disabled) { background: var(--blue-light); color: var(--blue); }
+.cal-day.cal-weekend { color: var(--gray-400); }
+.cal-day.cal-holiday { background: #fee2e2; color: var(--red); border-radius: 6px; }
+.cal-day.cal-selected { background: var(--blue); color: #fff !important; font-weight: 600; }
+.cal-day.cal-range { background: var(--blue-light); color: var(--blue); }
+.cal-day.cal-absent { background: #fee2e2; color: var(--red); }
+.cal-day.cal-disabled { color: var(--gray-300); cursor: default; }
+.cal-day.cal-empty { pointer-events: none; }
+.cal-legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+.cal-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--gray-500); }
+.cal-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ── PERÍODO RESULTADO ────────────────────────────────────── */
+.periodo-result { background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: var(--radius-sm); padding: 12px 14px; margin-top: 10px; }
+.periodo-row { display: flex; justify-content: space-between; font-size: 13px; padding: 3px 0; }
+.periodo-row .label { color: var(--gray-500); }
+.periodo-row .value { font-weight: 500; color: var(--gray-900); }
+
+/* ── HISTORIAL PIE ────────────────────────────────────────── */
+.hist-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--gray-100); }
+.hist-item:last-child { border-bottom: none; }
+.hist-icon { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.hist-icon.lar     { background: var(--blue-light); color: var(--blue); }
+.hist-icon.f14     { background: var(--green-light); color: var(--green); }
+.hist-icon.invierno{ background: var(--amber-light); color: var(--amber); }
+.hist-info { flex: 1; }
+.hist-name { font-size: 13px; font-weight: 500; color: var(--gray-800); }
+.hist-date { font-size: 11px; color: var(--gray-500); margin-top: 1px; }
+
+/* ── CALENDARIO AUSENCIAS ─────────────────────────────────── */
+.cal-abs-wrap { overflow-x: auto; }
+.cal-abs-table { border-collapse: collapse; font-size: 11px; min-width: 600px; }
+.cal-abs-table th { padding: 5px 6px; border: 1px solid var(--gray-200); background: var(--gray-50); font-size: 10px; font-weight: 600; color: var(--gray-500); text-align: center; white-space: nowrap; }
+.cal-abs-table th.agent-col { text-align: left; min-width: 140px; position: sticky; left: 0; background: var(--gray-50); z-index: 1; }
+.cal-abs-table td { padding: 4px 6px; border: 1px solid var(--gray-100); text-align: center; }
+.cal-abs-table td.agent-col { text-align: left; font-weight: 500; color: var(--gray-700); position: sticky; left: 0; background: var(--white); z-index: 1; }
+.cal-abs-table td.absent { background: #fee2e2; color: var(--red); font-size: 9px; font-weight: 600; }
+.cal-abs-table td.feriado-col { background: #fef3c7; }
+.cal-abs-table td.weekend-col { background: var(--gray-50); }
+.cal-abs-table tr:hover td { filter: brightness(.97); }
+.tab-bar { display: flex; border-bottom: 1px solid var(--gray-200); margin-bottom: 1.25rem; gap: 0; }
+.tab { padding: 8px 18px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--gray-500); border-bottom: 2px solid transparent; transition: all .12s; }
+.tab:hover { color: var(--gray-900); }
+.tab.active { color: var(--blue); border-bottom-color: var(--blue); }
+
+/* ── CONFIG TOGGLES ───────────────────────────────────────── */
+.config-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+.config-row:last-child { border-bottom: none; }
+.config-label { font-size: 13px; font-weight: 500; color: var(--gray-800); }
+.config-sub { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+.toggle { position: relative; display: inline-block; width: 38px; height: 22px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; inset: 0; background: var(--gray-300); border-radius: 22px; transition: .2s; }
+.toggle-slider:before { position: absolute; content: ''; height: 16px; width: 16px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .2s; }
+.toggle input:checked + .toggle-slider { background: var(--blue); }
+.toggle input:checked + .toggle-slider:before { transform: translateX(16px); }
+
+/* ── MODAL ────────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200;
+  align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--white); border-radius: var(--radius-lg); padding: 1.75rem;
+  width: 100%; max-width: 440px; box-shadow: 0 20px 60px rgba(0,0,0,.2);
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-title { font-size: 16px; font-weight: 600; color: var(--gray-900); margin-bottom: 1rem; }
+.modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1.25rem; }
+
+/* ── ALERTA ───────────────────────────────────────────────── */
+.alert { border-radius: var(--radius-sm); padding: 10px 14px; font-size: 13px; margin-bottom: 1rem; }
+.alert-error { background: var(--red-light); color: var(--red); border: 1px solid #fca5a5; }
+.alert-success { background: var(--green-light); color: var(--green); border: 1px solid #a7f3d0; }
+.alert-info { background: var(--blue-light); color: var(--blue); border: 1px solid #93c5fd; }
+
+/* ── LOADING ──────────────────────────────────────────────── */
+.loading { display: inline-block; width: 16px; height: 16px; border: 2px solid rgba(255,255,255,.4); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; }
+.loading-dark { border-color: var(--gray-200); border-top-color: var(--blue); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner-full { display: flex; align-items: center; justify-content: center; padding: 3rem; }
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .sidebar { display: none; }
+  .grid-2, .grid-3, .metric-grid { grid-template-columns: 1fr; }
+  .lic-selector { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ──────────────────────────────────────────────── -->
+<div id="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">LU87</div>
+    <div class="login-title">LU87 TV Canal 11</div>
+    <div class="login-sub">Sistema de Gestión de Licencias</div>
+    <div id="login-alert" class="alert alert-error" style="display:none"></div>
+    <div class="form-group">
+      <label class="form-label">Usuario</label>
+      <input type="text" id="login-user" placeholder="Ingresá tu usuario" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input type="password" id="login-pass" placeholder="••••••••" />
+    </div>
+    <button class="btn btn-primary btn-full" id="btn-login" onclick="doLogin()" style="margin-top:.5rem">
+      Ingresar
+    </button>
+    <div class="login-demo">Usuario por defecto: <strong>admin</strong> / <strong>admin123</strong></div>
+  </div>
+</div>
+
+<!-- ── APP ────────────────────────────────────────────────── -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">LU</div>
+      <span class="topbar-name">Gestión de Licencias</span>
+    </div>
+    <div class="topbar-user">
+      <div class="avatar" id="top-avatar">--</div>
+      <div class="topbar-info">
+        <div class="uname" id="top-name">—</div>
+        <div class="urole" id="top-role">—</div>
+      </div>
+      <span class="badge-role" id="top-badge">—</span>
+      <button class="btn-logout" onclick="doLogout()" title="Cerrar sesión">✕</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar">
+      <div class="nav-section" id="nav-agent-section">
+        <div class="nav-section-label">Mi cuenta</div>
+        <div class="nav-item active" data-screen="solicitud" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>
+          Nueva solicitud
+        </div>
+        <div class="nav-item" data-screen="mis-licencias" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Mis licencias
+        </div>
+      </div>
+      <div class="nav-section" id="nav-admin-section" style="display:none">
+        <div class="nav-section-label">Administración</div>
+        <div class="nav-item" data-screen="solicitudes" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v14a2 2 0 002 2h8"/><path d="M12 11v6m-3-3h6"/></svg>
+          Solicitudes
+        </div>
+        <div class="nav-item" data-screen="calendario" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Calendario
+        </div>
+        <div class="nav-item" data-screen="agentes" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+          Agentes
+        </div>
+        <div class="nav-item" data-screen="configuracion" onclick="nav(this)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+          Configuración
+        </div>
+      </div>
+    </div>
+
+    <div class="main" id="main-content">
+
+      <!-- ── NUEVA SOLICITUD ─────────────────────────────── -->
+      <div class="screen active" id="screen-solicitud">
+        <div class="page-header">
+          <h2>Nueva solicitud de licencia</h2>
+          <p>Completá los datos y seleccioná los días</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            Datos del agente
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Apellido y nombre</label>
+              <input type="text" id="sol-nombre" readonly />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Legajo</label>
+              <input type="text" id="sol-legajo" readonly />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Categoría</label>
+              <input type="text" id="sol-categoria" readonly />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sección</label>
+              <input type="text" id="sol-seccion" readonly />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Tipo de licencia
+          </div>
+          <div class="lic-selector">
+            <div class="lic-btn selected" onclick="selLic(this,'lar')">
+              <div class="lt">LAR</div>
+              <div class="ls">Vacaciones anuales</div>
+            </div>
+            <div class="lic-btn" onclick="selLic(this,'14f')">
+              <div class="lt">14F</div>
+              <div class="ls">Razones particulares</div>
+            </div>
+            <div class="lic-btn" onclick="selLic(this,'invierno')">
+              <div class="lt">Invierno</div>
+              <div class="ls">Licencia especial</div>
+            </div>
+          </div>
+          <div id="avail-box" class="avail-box avail-ok">
+            <div class="avail-title" id="avail-title">Cargando disponibilidad...</div>
+            <div class="avail-detail" id="avail-detail"></div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px">
+            <label class="form-label">Dirigir al</label>
+            <select id="sol-dirigido">
+              <option value="">— Seleccioná un destinatario —</option>
+            </select>
+          </div>
+
+          <!-- Campos LAR -->
+          <div id="campos-lar">
+            <div class="grid-2">
+              <div class="form-group">
+                <label class="form-label">Días a tomar</label>
+                <input type="number" id="lar-dias" min="5" max="35" value="10" oninput="recalcLar()" />
+                <span class="form-hint" id="lar-dias-hint">Mínimo 5 días por fracción</span>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Fracción</label>
+                <input type="text" id="lar-fraccion" readonly />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Ciudad donde se usufructúa</label>
+                <input type="text" id="lar-ciudad" placeholder="Ej: Buenos Aires" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Provincia / País</label>
+                <input type="text" id="lar-provincia" placeholder="Ej: Buenos Aires / Argentina" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Calle y número</label>
+                <input type="text" id="lar-domicilio" placeholder="Ej: Av. Corrientes 1234" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Código postal</label>
+                <input type="text" id="lar-cp" placeholder="Ej: C1043" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Campos Invierno -->
+          <div id="campos-invierno" style="display:none">
+            <div class="alert alert-info">La Licencia de Invierno es de 14 días corridos y no se puede fraccionar.</div>
+          </div>
+
+          <!-- Campos 14F -->
+          <div id="campos-14f" style="display:none">
+            <div class="alert alert-info">Podés seleccionar hasta 2 días por mes. Hacé click en los días del calendario.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Selección de días
+          </div>
+          <div class="cal-nav">
+            <button class="btn btn-secondary btn-sm" onclick="calMove(-1)">‹ Anterior</button>
+            <span class="cal-nav-title" id="cal-title">—</span>
+            <button class="btn btn-secondary btn-sm" onclick="calMove(1)">Siguiente ›</button>
+          </div>
+          <div class="cal-grid" id="cal-grid"></div>
+          <div class="cal-legend">
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue)"></div>Inicio / fin</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Período</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fee2e2"></div>Feriado / ausente</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--gray-100)"></div>Fin de semana</div>
+          </div>
+
+          <div class="periodo-result" id="periodo-result" style="display:none">
+            <div class="periodo-row"><span class="label">Fecha de inicio</span><span class="value" id="res-inicio">—</span></div>
+            <div class="periodo-row"><span class="label">Fecha de finalización (inclusive)</span><span class="value" id="res-fin">—</span></div>
+            <div class="periodo-row"><span class="label">Días hábiles descontados</span><span class="value" id="res-habiles">—</span></div>
+            <div class="periodo-row"><span class="label">Días corridos totales</span><span class="value" id="res-corridos">—</span></div>
+          </div>
+          <!-- 14F días seleccionados -->
+          <div id="dias14f-list" style="display:none;margin-top:10px">
+            <div style="font-size:12px;font-weight:600;color:var(--gray-600);margin-bottom:6px">Días seleccionados:</div>
+            <div id="dias14f-items"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="btn-confirmar" onclick="abrirConfirmar()">
+              Confirmar y generar formulario
+            </button>
+            <button class="btn btn-secondary" onclick="resetForm()">Limpiar</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Mis licencias tomadas este año
+          </div>
+          <div id="historial-solicitud">
+            <div class="spinner-full"><div class="loading loading-dark"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── MIS LICENCIAS ───────────────────────────────── -->
+      <div class="screen" id="screen-mis-licencias">
+        <div class="page-header">
+          <h2>Mis licencias</h2>
+          <p>Historial y saldo del año en curso</p>
+        </div>
+        <div class="metric-grid" id="saldo-grid">
+          <div class="spinner-full" style="grid-column:1/-1"><div class="loading loading-dark"></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">Historial de solicitudes</div>
+          <div id="mis-lic-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── SOLICITUDES ADMIN ───────────────────────────── -->
+      <div class="screen" id="screen-solicitudes">
+        <div class="page-header">
+          <h2>Solicitudes</h2>
+          <p>Gestión de todas las solicitudes recibidas</p>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+            <select id="fil-estado" onchange="cargarSolicitudes()" style="flex:1;min-width:140px">
+              <option value="">Todos los estados</option>
+              <option value="registrada">Registrada</option>
+              <option value="presentada">Presentada</option>
+              <option value="aprobada">Aprobada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="anulada">Anulada</option>
+            </select>
+            <select id="fil-tipo" onchange="cargarSolicitudes()" style="flex:1;min-width:120px">
+              <option value="">Todos los tipos</option>
+              <option value="lar">LAR</option>
+              <option value="14f">14F</option>
+              <option value="invierno">Invierno</option>
+            </select>
+          </div>
+          <div id="solicitudes-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── CALENDARIO ─────────────────────────────────── -->
+      <div class="screen" id="screen-calendario">
+        <div class="page-header">
+          <h2>Calendario de ausencias</h2>
+          <p>Vista del personal ausente por licencia</p>
+        </div>
+        <div class="tab-bar">
+          <div class="tab active" onclick="switchTab(this,'cal-mensual')">Vista mensual</div>
+          <div class="tab" onclick="switchTab(this,'cal-anual')">Vista anual</div>
+        </div>
+        <div id="cal-mensual">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+              <button class="btn btn-secondary btn-sm" onclick="calAbsMove(-1)">‹</button>
+              <span style="font-size:14px;font-weight:600" id="cal-abs-title">—</span>
+              <button class="btn btn-secondary btn-sm" onclick="calAbsMove(1)">›</button>
+            </div>
+            <div class="cal-abs-wrap"><table class="cal-abs-table" id="cal-abs-table"></table></div>
+          </div>
+        </div>
+        <div id="cal-anual" style="display:none">
+          <div class="card">
+            <div class="cal-abs-wrap"><table class="cal-abs-table" id="cal-anual-table"></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── AGENTES ─────────────────────────────────────── -->
+      <div class="screen" id="screen-agentes">
+        <div class="page-header">
+          <h2>Gestión de agentes</h2>
+          <p>Alta, baja y modificación del personal</p>
+        </div>
+        <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+          <button class="btn btn-primary" onclick="abrirModalAgente(null)">+ Nuevo agente</button>
+        </div>
+        <div class="card">
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="text" id="buscar-agente" placeholder="Buscar por nombre o legajo..." style="flex:1" oninput="filtrarAgentes()" />
+            <select id="fil-seccion-ag" onchange="filtrarAgentes()" style="min-width:140px">
+              <option value="">Todas las secciones</option>
+            </select>
+          </div>
+          <div id="agentes-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+      </div>
+
+      <!-- ── CONFIGURACIÓN ───────────────────────────────── -->
+      <div class="screen" id="screen-configuracion">
+        <div class="page-header">
+          <h2>Configuración</h2>
+          <p>Parámetros del sistema</p>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Correo de destino</div>
+          <div class="form-group">
+            <label class="form-label">Mail donde se envían los formularios</label>
+            <input type="email" id="cfg-mail" placeholder="rrhh@lu87canal11.gob.ar" />
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="guardarConfigMail()">Guardar</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Períodos y disponibilidad</div>
+          <div class="config-row">
+            <div><div class="config-label">LAR — habilitada</div>
+              <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+                <div class="form-group"><label class="form-label">Desde</label><input type="date" id="cfg-lar-desde" style="width:140px"/></div>
+                <div class="form-group"><label class="form-label">Hasta</label><input type="date" id="cfg-lar-hasta" style="width:140px"/></div>
+              </div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="cfg-lar-hab" /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="config-row">
+            <div><div class="config-label">Licencia de Invierno — habilitada</div>
+              <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap">
+                <div class="form-group"><label class="form-label">Desde</label><input type="date" id="cfg-inv-desde" style="width:140px"/></div>
+                <div class="form-group"><label class="form-label">Hasta</label><input type="date" id="cfg-inv-hasta" style="width:140px"/></div>
+              </div>
+            </div>
+            <label class="toggle"><input type="checkbox" id="cfg-inv-hab" /><span class="toggle-slider"></span></label>
+          </div>
+          <div class="config-row">
+            <div><div class="config-label">L. Invierno solo desde lunes</div>
+              <div class="config-sub">Obliga a que el inicio sea día lunes</div></div>
+            <label class="toggle"><input type="checkbox" id="cfg-inv-lunes" /><span class="toggle-slider"></span></label>
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:10px" onclick="guardarConfigPeriodos()">Guardar períodos</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Restricciones entre licencias</div>
+          <div class="config-sub" style="margin-bottom:1rem">Días hábiles mínimos requeridos entre tipos. Poner 0 para desactivar la restricción.</div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Entre fracciones de LAR</label>
+              <input type="number" id="cfg-lar-frac" min="0" value="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Entre LAR y L. Invierno</label>
+              <input type="number" id="cfg-lar-inv" min="0" value="0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Entre L. Invierno y LAR</label>
+              <input type="number" id="cfg-inv-lar" min="0" value="0" />
+            </div>
+          </div>
+          <button class="btn btn-primary btn-sm" style="margin-top:8px" onclick="guardarConfigRestricciones()">Guardar restricciones</button>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Feriados y días no laborables</div>
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="date" id="nuevo-feriado-fecha" style="flex:1;min-width:130px" />
+            <input type="text" id="nuevo-feriado-desc" placeholder="Descripción" style="flex:2;min-width:160px" />
+            <button class="btn btn-primary btn-sm" onclick="agregarFeriado()">+ Agregar</button>
+          </div>
+          <div id="feriados-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Jerarquía — destinatarios de formularios</div>
+          <div style="display:flex;gap:8px;margin-bottom:1rem;flex-wrap:wrap">
+            <input type="text" id="nuevo-jer-nombre" placeholder="Nombre y apellido / cargo" style="flex:2;min-width:160px" />
+            <select id="nuevo-jer-cargo" style="flex:1;min-width:130px">
+              <option>Director</option><option>Sub Director</option>
+              <option>Jefe de Sección</option><option>Jefe de Equipo</option>
+              <option>Encargado</option><option>Otro</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="agregarJerarquia()">+ Agregar</button>
+          </div>
+          <div id="jerarquia-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">Secciones</div>
+          <div style="display:flex;gap:8px;margin-bottom:1rem">
+            <input type="text" id="nueva-seccion" placeholder="Nombre de la sección" style="flex:1" />
+            <button class="btn btn-primary btn-sm" onclick="agregarSeccion()">+ Agregar</button>
+          </div>
+          <div id="secciones-table"><div class="spinner-full"><div class="loading loading-dark"></div></div></div>
+        </div>
+      </div>
+
+    </div><!-- /main -->
+  </div><!-- /layout -->
+</div><!-- /app -->
+
+<!-- ── MODAL CONFIRMAR SOLICITUD ───────────────────────────── -->
+<div class="modal-backdrop" id="modal-confirmar">
+  <div class="modal">
+    <div class="modal-title">Confirmar solicitud</div>
+    <div id="confirmar-resumen" style="background:var(--gray-50);border:1px solid var(--gray-200);border-radius:var(--radius-sm);padding:12px;font-size:13px;margin-bottom:1rem;line-height:1.8"></div>
+    <div class="alert alert-info" style="font-size:12px">Al confirmar se registrará la solicitud, se descargará el formulario en PDF y se enviará automáticamente por mail a administración.</div>
+    <div id="confirmar-error" class="alert alert-error" style="display:none"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-confirmar')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-ok" onclick="confirmarSolicitud()">
+        Confirmar y descargar PDF
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL AGENTE ────────────────────────────────────────── -->
+<div class="modal-backdrop" id="modal-agente">
+  <div class="modal">
+    <div class="modal-title" id="modal-agente-titulo">Nuevo agente</div>
+    <input type="hidden" id="ag-id" />
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Apellido</label>
+        <input type="text" id="ag-apellido" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nombre</label>
+        <input type="text" id="ag-nombre" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Legajo</label>
+        <input type="text" id="ag-legajo" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <input type="text" id="ag-categoria" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Sección</label>
+        <select id="ag-seccion"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Cargo</label>
+        <select id="ag-cargo">
+          <option>Agente</option><option>Encargado</option><option>Jefe de Equipo</option>
+          <option>Jefe de Sección</option><option>Sub Director</option><option>Director</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Fecha de ingreso</label>
+        <input type="date" id="ag-ingreso" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email (opcional)</label>
+        <input type="email" id="ag-email" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Usuario</label>
+        <input type="text" id="ag-usuario" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Contraseña <span style="color:var(--gray-400);font-size:11px">(dejar vacío para mantener)</span></label>
+        <input type="password" id="ag-password" placeholder="Nueva contraseña" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Días LAR override <span style="color:var(--gray-400);font-size:11px">(opcional)</span></label>
+        <input type="number" id="ag-lar-override" placeholder="Dejar vacío para calcular" />
+      </div>
+      <div class="form-group" style="align-self:end">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+          <input type="checkbox" id="ag-esadmin" /> Es administrativo
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-top:6px">
+          <input type="checkbox" id="ag-activo" checked /> Activo
+        </label>
+      </div>
+    </div>
+    <div id="modal-agente-error" class="alert alert-error" style="display:none;margin-top:1rem"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-agente')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarAgente()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL ESTADO SOLICITUD ──────────────────────────────── -->
+<div class="modal-backdrop" id="modal-estado">
+  <div class="modal">
+    <div class="modal-title">Actualizar estado</div>
+    <input type="hidden" id="est-id" />
+    <div class="form-group" style="margin-bottom:1rem">
+      <label class="form-label">Nuevo estado</label>
+      <select id="est-estado">
+        <option value="presentada">Presentada</option>
+        <option value="aprobada">Aprobada</option>
+        <option value="rechazada">Rechazada</option>
+        <option value="anulada">Anulada</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Observaciones (opcional)</label>
+      <textarea id="est-obs" rows="3" placeholder="Motivo, notas..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal('modal-estado')">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEstado()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── CONFIGURACIÓN ──────────────────────────────────────────
+const API_URL = 'https://script.google.com/macros/s/AKfycbwSY7ekap1ATkwdLyH_fvDjzx70OmzjLoMH1qas1-u0XG5yt4xp_FFyObGDqDUE9GmnNg/exec';
+
+// ── ESTADO GLOBAL ──────────────────────────────────────────
+let currentUser = null;
+let config      = {};
+let feriados    = {};   // {'dd/MM/yyyy': descripcion}
+let jerarquia   = [];
+let secciones   = [];
+let agentes     = [];
+let solicitudes = [];
+let saldo       = {};
+
+// Calendario solicitud
+let calYear  = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let selInicio = null;
+let selFin    = null;
+let diasSel14f = [];
+let licTipo  = 'lar';
+
+// Calendario ausencias
+let calAbsYear  = new Date().getFullYear();
+let calAbsMonth = new Date().getMonth();
+
+// ── API ────────────────────────────────────────────────────
+async function api(action, data={}) {
+  const resp = await fetch(API_URL, {
+    method: 'POST',
+    body: JSON.stringify({ action, data }),
+    headers: { 'Content-Type': 'text/plain' }
+  });
+  const json = await resp.json();
+  if (!json.ok) throw new Error(json.error || 'Error desconocido');
+  return json.result;
+}
+
+// ── LOGIN ──────────────────────────────────────────────────
+document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-user').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+async function doLogin() {
+  const btn = document.getElementById('btn-login');
+  const err = document.getElementById('login-alert');
+  err.style.display = 'none';
+  btn.innerHTML = '<span class="loading"></span> Ingresando...';
+  btn.disabled = true;
+  try {
+    const user = await api('login', {
+      usuario: document.getElementById('login-user').value.trim(),
+      password: document.getElementById('login-pass').value
+    });
+    currentUser = user;
+    await initApp();
+  } catch(e) {
+    err.textContent = e.message;
+    err.style.display = 'block';
+  } finally {
+    btn.innerHTML = 'Ingresar';
+    btn.disabled = false;
+  }
+}
+
+async function initApp() {
+  document.getElementById('login-wrap').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+
+  // Topbar
+  const ini = (currentUser.apellido[0]||'') + (currentUser.nombre[0]||'');
+  document.getElementById('top-avatar').textContent = ini.toUpperCase();
+  document.getElementById('top-name').textContent = currentUser.apellido + ', ' + currentUser.nombre;
+  document.getElementById('top-role').textContent = currentUser.cargo || '';
+  const badge = document.getElementById('top-badge');
+  if (currentUser.es_admin === 'true') {
+    badge.textContent = 'Administrativo'; badge.className = 'badge-role admin';
+    document.getElementById('nav-admin-section').style.display = 'block';
+  } else {
+    badge.textContent = 'Agente'; badge.className = 'badge-role agent';
+  }
+
+  // Cargar datos base
+  [config, feriados, jerarquia, secciones] = await Promise.all([
+    api('getConfig'),
+    api('getFeriados').then(f => { const m={}; f.forEach(x=>m[x.fecha]=x.descripcion); return m; }),
+    api('getJerarquia'),
+    api('getSecciones')
+  ]);
+
+  // Datos del formulario solicitud
+  llenarDatosSolicitud();
+  cargarDestinatarios();
+  renderCal();
+  cargarSaldo();
+  cargarHistorialSolicitud();
+
+  if (currentUser.es_admin === 'true') {
+    cargarConfigUI();
+    cargarFeriadosTabla();
+    cargarJerarquiaTabla();
+    cargarSeccionesTabla();
+    nav(document.querySelector('[data-screen="solicitud"]'));
+  }
+}
+
+function doLogout() {
+  currentUser = null; config={}; feriados={}; jerarquia=[]; secciones=[];
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-wrap').style.display = 'flex';
+  document.getElementById('login-user').value = '';
+  document.getElementById('login-pass').value = '';
+}
+
+// ── NAVEGACIÓN ─────────────────────────────────────────────
+function nav(el) {
+  if (!el) return;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  const sc = el.dataset.screen;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-'+sc).classList.add('active');
+  // Lazy load
+  if (sc==='mis-licencias') { cargarMisLicencias(); }
+  if (sc==='solicitudes')   { cargarSolicitudes(); }
+  if (sc==='calendario')    { renderCalAbs(); }
+  if (sc==='agentes')       { cargarAgentes(); }
+}
+
+// ── FORMULARIO SOLICITUD ───────────────────────────────────
+function llenarDatosSolicitud() {
+  const nombre = currentUser.apellido + ', ' + currentUser.nombre;
+  document.getElementById('sol-nombre').value    = nombre;
+  document.getElementById('sol-legajo').value    = currentUser.legajo;
+  document.getElementById('sol-categoria').value = currentUser.categoria;
+  // Sección
+  const sec = secciones.find(s => s.id === currentUser.seccion_id);
+  document.getElementById('sol-seccion').value = sec ? sec.nombre : currentUser.seccion_id || '—';
+}
+
+function cargarDestinatarios() {
+  const sel = document.getElementById('sol-dirigido');
+  sel.innerHTML = '<option value="">— Seleccioná un destinatario —</option>';
+  jerarquia.forEach(j => {
+    const o = document.createElement('option');
+    o.value = j.nombre;
+    o.textContent = j.nombre + ' — ' + j.cargo;
+    sel.appendChild(o);
+  });
+}
+
+async function cargarSaldo() {
+  try {
+    saldo = await api('getSaldoLicencias', { agente_id: currentUser.id });
+    actualizarAvailBox();
+    actualizarFraccion();
+  } catch(e) { console.error(e); }
+}
+
+function selLic(el, tipo) {
+  licTipo = tipo;
+  document.querySelectorAll('.lic-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('campos-lar').style.display     = tipo==='lar'      ? 'block' : 'none';
+  document.getElementById('campos-invierno').style.display= tipo==='invierno' ? 'block' : 'none';
+  document.getElementById('campos-14f').style.display     = tipo==='14f'      ? 'block' : 'none';
+  selInicio=null; selFin=null; diasSel14f=[];
+  actualizarAvailBox();
+  renderCal();
+  document.getElementById('periodo-result').style.display = 'none';
+  document.getElementById('dias14f-list').style.display   = 'none';
+}
+
+function actualizarAvailBox() {
+  const box   = document.getElementById('avail-box');
+  const title = document.getElementById('avail-title');
+  const det   = document.getElementById('avail-detail');
+  if (!saldo || !saldo[licTipo==='14f'?'f14':licTipo]) return;
+
+  if (licTipo === 'lar') {
+    const s = saldo.lar;
+    if (s.total === 0) {
+      box.className='avail-box avail-no'; title.textContent='Sin LAR disponible';
+      det.textContent='No tenés días de LAR para este año (primer año incompleto o sin saldo).'; return;
+    }
+    if (s.fracciones_disponibles === 0) {
+      box.className='avail-box avail-no'; title.textContent='Sin fracciones disponibles';
+      det.textContent='Ya utilizaste las 3 fracciones de LAR.'; return;
+    }
+    box.className='avail-box avail-ok';
+    title.textContent='LAR disponible — año ' + s.anio_usufructo;
+    det.textContent = s.disponibles + ' días disponibles de ' + s.total +
+      ' (' + (s.tipo==='habiles'?'días hábiles':'días corridos') + ') · ' +
+      'Fracción ' + (s.fracciones_usadas+1) + ' de 3';
+  } else if (licTipo === '14f') {
+    const s = saldo.f14;
+    if (s.disponibles === 0) {
+      box.className='avail-box avail-no'; title.textContent='Sin días 14F disponibles';
+      det.textContent='Agotaste los 6 días del año.'; return;
+    }
+    if (s.disponibles_mes === 0) {
+      box.className='avail-box avail-warn'; title.textContent='Límite mensual alcanzado';
+      det.textContent='Ya usaste 2 días este mes. Podés pedir para el mes siguiente.'; return;
+    }
+    box.className='avail-box avail-ok';
+    title.textContent='14F disponible';
+    det.textContent = s.disponibles + ' días disponibles en el año · ' +
+      s.disponibles_mes + ' disponibles este mes (máx. 2)';
+  } else {
+    const s = saldo.invierno;
+    if (!s.habilitada) {
+      box.className='avail-box avail-no'; title.textContent='Licencia de Invierno no habilitada';
+      det.textContent='El período aún no fue habilitado por administración.'; return;
+    }
+    if (s.usada) {
+      box.className='avail-box avail-no'; title.textContent='Licencia de Invierno ya utilizada';
+      det.textContent='Ya tomaste la Licencia de Invierno este año.'; return;
+    }
+    box.className='avail-box avail-ok';
+    title.textContent='Licencia de Invierno disponible';
+    det.textContent='14 días corridos · Período: ' + s.periodo_inicio + ' al ' + s.periodo_fin +
+      (s.solo_lunes ? ' · Debe iniciar un lunes' : '');
+  }
+}
+
+function actualizarFraccion() {
+  if (!saldo.lar) return;
+  const frac = ['1ª','2ª','3ª'];
+  document.getElementById('lar-fraccion').value = (frac[saldo.lar.fracciones_usadas] || '—') + ' fracción';
+  const max = saldo.lar.disponibles;
+  document.getElementById('lar-dias').max = max;
+  document.getElementById('lar-dias-hint').textContent = 'Mínimo 5 días · Disponibles: ' + max;
+}
+
+// ── CALENDARIO SOLICITUD ───────────────────────────────────
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DIAS_S = ['Lu','Ma','Mi','Ju','Vi','Sá','Do'];
+
+function calMove(d) { calMonth += d; if(calMonth>11){calMonth=0;calYear++;} if(calMonth<0){calMonth=11;calYear--;} renderCal(); }
+
+function renderCal() {
+  document.getElementById('cal-title').textContent = MESES[calMonth] + ' ' + calYear;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = DIAS_S.map(d=>`<div class="cal-head">${d}</div>`).join('');
+
+  const primer = new Date(calYear, calMonth, 1);
+  const dow = (primer.getDay()+6)%7; // lunes=0
+  for(let i=0;i<dow;i++) grid.innerHTML += '<div class="cal-day cal-empty"></div>';
+
+  const dias = new Date(calYear, calMonth+1, 0).getDate();
+  for(let d=1;d<=dias;d++) {
+    const fecha = new Date(calYear, calMonth, d);
+    const fstr  = fmtDate(fecha);
+    const dow2  = fecha.getDay(); // 0=dom,6=sab
+    const esFS  = dow2===0||dow2===6;
+    const esFer = !!feriados[fstr];
+
+    let cls = 'cal-day';
+    if (esFS)  cls += ' cal-weekend';
+    if (esFer) cls += ' cal-holiday';
+
+    if (licTipo === '14f') {
+      if (diasSel14f.includes(fstr)) cls += ' cal-selected';
+    } else {
+      if (selInicio && fstr === fmtDate(selInicio)) cls += ' cal-selected';
+      else if (selFin && fstr === fmtDate(selFin))  cls += ' cal-selected';
+      else if (selInicio && selFin && fecha>selInicio && fecha<selFin) cls += ' cal-range';
+    }
+
+    const disabled = esFer || (licTipo==='invierno' && config.invierno_solo_lunes==='true' && !selInicio && dow2!==1);
+    if (disabled && !esFS && !esFer) cls += ' cal-disabled';
+
+    grid.innerHTML += `<div class="${cls}" onclick="clickDia('${fstr}',${esFS},${esFer})">${d}</div>`;
+  }
+}
+
+function clickDia(fstr, esFS, esFer) {
+  if (esFer) return;
+  if (licTipo === '14f') {
+    if (esFS) return;
+    const idx = diasSel14f.indexOf(fstr);
+    if (idx>=0) { diasSel14f.splice(idx,1); }
+    else {
+      if (diasSel14f.length >= 2) { alert('Máximo 2 días 14F por selección. Si necesitás más, asegurate de no superar el límite mensual.'); return; }
+      diasSel14f.push(fstr);
+    }
+    render14fDias();
+    renderCal();
+    return;
+  }
+  // LAR / Invierno
+  const fecha = parseDate(fstr);
+  if (!selInicio || (selInicio && selFin)) {
+    // Invierno solo lunes
+    if (licTipo==='invierno' && config.invierno_solo_lunes==='true' && fecha.getDay()!==1) {
+      alert('La Licencia de Invierno debe comenzar un lunes.'); return;
+    }
+    selInicio = fecha; selFin = null;
+    document.getElementById('periodo-result').style.display='none';
+  } else {
+    if (fecha < selInicio) { selInicio=fecha; selFin=null; renderCal(); return; }
+    selFin = fecha;
+    calcularPeriodo();
+  }
+  renderCal();
+}
+
+function recalcLar() {
+  if (selInicio && licTipo==='lar') calcularPeriodo();
+}
+
+function calcularPeriodo() {
+  if (!selInicio) return;
+  const dias = parseInt(document.getElementById('lar-dias').value) || 10;
+  if (licTipo==='lar' && selInicio && !selFin) {
+    // Auto-calcular fin según días y tipo
+    const tipo = saldo.lar ? saldo.lar.tipo : 'corridos';
+    selFin = calcFin(selInicio, dias, tipo);
+    renderCal();
+  }
+  if (!selFin) return;
+  const corridos = Math.round((selFin-selInicio)/(1000*60*60*24)) + 1;
+  let habiles = 0;
+  let d = new Date(selInicio);
+  while(d<=selFin) {
+    const dw=d.getDay(); const fs=fmtDate(d);
+    if(dw!==0&&dw!==6&&!feriados[fs]) habiles++;
+    d.setDate(d.getDate()+1);
+  }
+  document.getElementById('res-inicio').textContent   = fmtDateLargo(selInicio);
+  document.getElementById('res-fin').textContent      = fmtDateLargo(selFin);
+  document.getElementById('res-habiles').textContent  = habiles + ' días hábiles';
+  document.getElementById('res-corridos').textContent = corridos + ' días corridos';
+  document.getElementById('periodo-result').style.display = 'block';
+}
+
+function calcFin(inicio, diasHabiles, tipo) {
+  // Para tipo 'habiles': contar diasHabiles días hábiles desde inicio
+  // Para tipo 'corridos': sumar diasHabiles-1 días corridos
+  if (tipo==='corridos') {
+    const fin = new Date(inicio);
+    fin.setDate(fin.getDate() + diasHabiles - 1);
+    return fin;
+  }
+  let count=0; let d=new Date(inicio);
+  while(count<diasHabiles) {
+    const dw=d.getDay(); const fs=fmtDate(d);
+    if(dw!==0&&dw!==6&&!feriados[fs]) count++;
+    if(count<diasHabiles) d.setDate(d.getDate()+1);
+  }
+  return d;
+}
+
+function render14fDias() {
+  const list = document.getElementById('dias14f-items');
+  list.innerHTML = diasSel14f.sort().map(f=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--gray-100);font-size:13px">
+      <span>${fmtDateLargo(parseDate(f))}</span>
+      <button class="btn btn-danger btn-sm" onclick="quitarDia14f('${f}')">✕</button>
+    </div>`).join('');
+  document.getElementById('dias14f-list').style.display = diasSel14f.length?'block':'none';
+}
+
+function quitarDia14f(f) { diasSel14f=diasSel14f.filter(x=>x!==f); render14fDias(); renderCal(); }
+
+// ── CONFIRMAR SOLICITUD ────────────────────────────────────
+function abrirConfirmar() {
+  const err = document.getElementById('confirmar-error');
+  err.style.display='none';
+  // Validar
+  if (!document.getElementById('sol-dirigido').value) { alert('Seleccioná un destinatario.'); return; }
+  if (licTipo==='lar' && (!selInicio||!selFin)) { alert('Seleccioná el período en el calendario.'); return; }
+  if (licTipo==='invierno' && (!selInicio||!selFin)) { alert('Seleccioná la fecha de inicio en el calendario.'); return; }
+  if (licTipo==='14f' && diasSel14f.length===0) { alert('Seleccioná al menos un día.'); return; }
+  if (licTipo==='lar' && !document.getElementById('lar-ciudad').value.trim()) { alert('Ingresá la ciudad donde vas a estar.'); return; }
+
+  // Resumen
+  let resumen = `<b>Agente:</b> ${currentUser.apellido}, ${currentUser.nombre} · Legajo ${currentUser.legajo}<br>`;
+  const tipos = {lar:'Licencia Anual Reglamentaria', '14f':'Artículo 14F', invierno:'Licencia Especial de Invierno'};
+  resumen += `<b>Tipo:</b> ${tipos[licTipo]}<br>`;
+  if (licTipo==='14f') {
+    resumen += `<b>Días:</b> ${diasSel14f.sort().map(f=>fmtDateLargo(parseDate(f))).join(', ')}<br>`;
+  } else {
+    resumen += `<b>Desde:</b> ${fmtDateLargo(selInicio)}<br><b>Hasta:</b> ${fmtDateLargo(selFin)}<br>`;
+    resumen += `<b>Días hábiles:</b> ${document.getElementById('res-habiles').textContent}<br>`;
+  }
+  resumen += `<b>Dirigido a:</b> ${document.getElementById('sol-dirigido').value}`;
+  document.getElementById('confirmar-resumen').innerHTML = resumen;
+  document.getElementById('modal-confirmar').classList.add('open');
+}
+
+async function confirmarSolicitud() {
+  const btn = document.getElementById('btn-confirmar-ok');
+  const err = document.getElementById('confirmar-error');
+  err.style.display='none';
+  btn.innerHTML='<span class="loading"></span> Procesando...'; btn.disabled=true;
+
+  try {
+    // Calcular días
+    let fInicio='', fFin='', diasH=0, diasC=0;
+    if (licTipo==='14f') {
+      fInicio = diasSel14f.sort()[0];
+      fFin    = diasSel14f.sort().slice(-1)[0];
+      diasH   = diasSel14f.length;
+      diasC   = diasSel14f.length;
+    } else {
+      fInicio = fmtDate(selInicio);
+      fFin    = fmtDate(selFin);
+      diasC   = Math.round((selFin-selInicio)/(1000*60*60*24))+1;
+      let d=new Date(selInicio);
+      while(d<=selFin){ const dw=d.getDay(),fs=fmtDate(d); if(dw!==0&&dw!==6&&!feriados[fs]) diasH++; d.setDate(d.getDate()+1); }
+    }
+
+    const payload = {
+      agente_id: currentUser.id,
+      tipo: licTipo,
+      fecha_inicio: fInicio,
+      fecha_fin: fFin,
+      dias_habiles: diasH,
+      dias_corridos: diasC,
+      fraccion: document.getElementById('lar-fraccion').value,
+      dirigido_a: document.getElementById('sol-dirigido').value,
+      ciudad: document.getElementById('lar-ciudad')?.value || '',
+      provincia: document.getElementById('lar-provincia')?.value || '',
+      domicilio: document.getElementById('lar-domicilio')?.value || '',
+      codigo_postal: document.getElementById('lar-cp')?.value || '',
+      dias_14f_detalle: diasSel14f.join(','),
+    };
+
+    const saved = await api('saveSolicitud', payload);
+
+    // Generar PDF
+    const pdfB64 = generarPDF(payload);
+
+    // Enviar mail
+    await api('enviarFormulario', { ...payload, pdfBase64: pdfB64 });
+
+    // Descargar PDF
+    descargarPDF(pdfB64, payload);
+
+    cerrarModal('modal-confirmar');
+    resetForm();
+    await cargarSaldo();
+    await cargarHistorialSolicitud();
+    alert('✅ Solicitud registrada correctamente. El PDF se descargó y se envió por mail a administración.');
+  } catch(e) {
+    err.textContent = e.message; err.style.display='block';
+  } finally {
+    btn.innerHTML='Confirmar y descargar PDF'; btn.disabled=false;
+  }
+}
+
+// ── GENERADOR PDF ──────────────────────────────────────────
+function generarPDF(data) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:'mm', format:'a4' });
+  const W=210, M=20;
+
+  // Membrete
+  doc.setFontSize(8); doc.setTextColor(80);
+  doc.text('Provincia de Tierra del Fuego, Antártidae e Islas del Atlántico Sur', W/2, 12, {align:'center'});
+  doc.text('República Argentina', W/2, 16, {align:'center'});
+
+  const tipos = {lar:'SOLICITUD DE LICENCIA ANUAL REGLAMENTARIA', '14f':'SOLICITUD DE LICENCIA ART. 14 F)', invierno:'SOLICITUD DE LICENCIA ESPECIAL DE INVIERNO '+new Date().getFullYear()};
+  doc.setFontSize(13); doc.setFont(undefined,'bold'); doc.setTextColor(0);
+  doc.setFillColor(255,245,180); doc.rect(M,20,W-2*M,10,'F');
+  doc.text(tipos[data.tipo], W/2, 27, {align:'center'});
+  doc.setFont(undefined,'normal'); doc.setFontSize(10);
+
+  let y=38;
+  const ln=(t,v,ay)=>{ doc.text(t,M,ay); doc.text(v||'',M+50,ay); return ay+7; };
+
+  if (data.tipo==='lar') {
+    doc.text(`Al Señor/a: ${data.dirigido_a||''}`, M, y); y+=8;
+    doc.text(`El/la que suscribe: ${currentUser.apellido}, ${currentUser.nombre}`, M, y);
+    doc.text(`Legajo Nº: ${currentUser.legajo}`, W-M-40, y); y+=8;
+    doc.text(`Categoría: ${currentUser.categoria||''}`, M, y);
+    const dias14Text = data.dias_habiles + ' (' + data.dias_habiles + ')';
+    doc.text(`solicita se le concedan ${dias14Text} días de Licencia Anual Reglamentaria`, M, y+6); y+=13;
+    doc.text(`correspondiente al año ${new Date().getFullYear()-1}, para ser utilizada en la ciudad de`, M, y); y+=7;
+    doc.text(`${data.ciudad||'.........'}, Provincia / País de ${data.provincia||'....'}`, M, y); y+=7;
+    doc.text(`fijando domicilio en la calle ${data.domicilio||'...........'} Cód. Postal ${data.codigo_postal||'....'}`, M, y); y+=7;
+    doc.text(`comenzando a usufructuar a partir del día ${data.fecha_inicio} hasta el ${data.fecha_fin}.`, M, y); y+=10;
+    doc.text(`Observaciones: ${data.fraccion||'1ª Fracción'}`, M, y); y+=12;
+    doc.line(M,y,M+50,y); doc.line(W/2,y,W-M,y); y+=5;
+    doc.setFontSize(8);
+    doc.text('Aclaración', M+10, y); doc.text('Firma', W/2+15, y);
+  } else if (data.tipo==='invierno') {
+    doc.text(`Al Señor/a: ${data.dirigido_a||''}`, M, y); y+=8;
+    doc.text(`El/la que suscribe: ${currentUser.apellido}, ${currentUser.nombre}`, M, y);
+    doc.text(`Legajo Nº: ${currentUser.legajo}`, W-M-40, y); y+=8;
+    doc.text(`Categoría: ${currentUser.categoria||''}   solicita se le concedan 14 (catorce) días de`, M, y); y+=7;
+    doc.text(`Licencia Especial de Invierno ${new Date().getFullYear()}, a usufructuarse desde el día`, M, y); y+=7;
+    doc.text(`${data.fecha_inicio} hasta el día ${data.fecha_fin}.`, M, y); y+=10;
+    doc.text('Por medio de la presente reconozco tener pleno conocimiento de las condiciones establecidas', M, y); y+=6;
+    doc.text('en la normativa vigente.', M, y); y+=12;
+    doc.text(`Ushuaia, ${new Date().toLocaleDateString('es-AR')}`, M, y); y+=10;
+    doc.line(M,y,M+50,y); doc.line(W/2,y,W-M,y); y+=5;
+    doc.setFontSize(8);
+    doc.text('Firma del agente', M+5, y); doc.text('Aclaración', W/2+10, y);
+  } else {
+    doc.text(`Ushuaia, ${new Date().toLocaleDateString('es-AR')}`, M, y); y+=10;
+    doc.text(`Al/la ${data.dirigido_a||'Jefe/a Superior'}:`, M, y); y+=10;
+    doc.text('Por medio de la presente me dirijo a usted a efectos de solicitar autorización para', M, y); y+=7;
+    doc.text('utilizar artículo 14 F) "razones particulares" del Decreto Nacional N° 3413/79', M, y); y+=7;
+    doc.text('el/los días que se indican a continuación:', M, y); y+=10;
+    const dias = data.dias_14f_detalle ? data.dias_14f_detalle.split(',') : [];
+    dias.forEach(fd=>{ doc.text(fd, M+20, y); y+=8; });
+    y+=5;
+    doc.text('Sin otro particular saludo a usted atentamente.', M, y); y+=15;
+    doc.line(M,y,M+60,y); y+=5;
+    doc.setFontSize(8);
+    doc.text(`FIRMA: `, M, y); y+=7;
+    doc.text(`ACLARACIÓN: ${currentUser.apellido}, ${currentUser.nombre}`, M, y); y+=7;
+    doc.text(`LEGAJO N°: ${currentUser.legajo}`, M, y); y+=12;
+    doc.setFontSize(10); doc.setFont(undefined,'bold');
+    doc.text('AUTORIZADA  SI / NO', M, y); y+=8;
+    doc.setFont(undefined,'normal');
+    doc.text('FIRMA Y SELLO DEL JEFE: ................................................', M, y);
+  }
+
+  return doc.output('datauristring').split(',')[1];
+}
+
+function descargarPDF(b64, data) {
+  const tipos = {lar:'LAR', '14f':'14F', invierno:'Invierno'};
+  const nombre = `Solicitud_${tipos[data.tipo]}_${currentUser.legajo}_${data.fecha_inicio.replace(/\//g,'-')}.pdf`;
+  const link = document.createElement('a');
+  link.href = 'data:application/pdf;base64,' + b64;
+  link.download = nombre;
+  link.click();
+}
+
+function resetForm() {
+  selInicio=null; selFin=null; diasSel14f=[];
+  document.getElementById('lar-ciudad').value='';
+  document.getElementById('lar-provincia').value='';
+  document.getElementById('lar-domicilio').value='';
+  document.getElementById('lar-cp').value='';
+  document.getElementById('sol-dirigido').value='';
+  document.getElementById('periodo-result').style.display='none';
+  document.getElementById('dias14f-list').style.display='none';
+  renderCal();
+}
+
+// ── HISTORIAL SOLICITUD PIE ────────────────────────────────
+async function cargarHistorialSolicitud() {
+  const cont = document.getElementById('historial-solicitud');
+  try {
+    const rows = await api('getSolicitudesAgente', { agente_id: currentUser.id });
+    if (!rows.length) { cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes registradas</p>'; return; }
+    const iconos = {lar:'lar', '14f':'f14', invierno:'invierno'};
+    const labels = {lar:'LAR', '14f':'14F', invierno:'Invierno'};
+    cont.innerHTML = rows.slice(0,8).map(r=>`
+      <div class="hist-item">
+        <div class="hist-icon ${iconos[r.tipo]||'lar'}">${(labels[r.tipo]||r.tipo).substring(0,3)}</div>
+        <div class="hist-info">
+          <div class="hist-name">${r.tipo==='14f'?'14F — Razones particulares':r.tipo==='invierno'?'Licencia Especial de Invierno':'Licencia Anual Reglamentaria'}</div>
+          <div class="hist-date">${r.fecha_inicio}${r.fecha_fin!==r.fecha_inicio?' al '+r.fecha_fin:''} · ${r.dias_habiles} día(s) · <span class="badge badge-${r.estado||'registrada'}">${r.estado||'registrada'}</span></div>
+        </div>
+      </div>`).join('');
+  } catch(e) { cont.innerHTML='<p style="color:var(--red);font-size:12px">Error al cargar</p>'; }
+}
+
+// ── MIS LICENCIAS ──────────────────────────────────────────
+async function cargarMisLicencias() {
+  // Saldo
+  const sg = document.getElementById('saldo-grid');
+  if (saldo.f14) {
+    sg.innerHTML = `
+      <div class="metric-card"><div class="metric-label">14F disponibles</div><div class="metric-value">${saldo.f14.disponibles}</div><div class="metric-sub">de 6 · usados: ${saldo.f14.usados}</div></div>
+      <div class="metric-card"><div class="metric-label">LAR disponibles</div><div class="metric-value">${saldo.lar.disponibles}</div><div class="metric-sub">${saldo.lar.tipo==='habiles'?'días hábiles':'días corridos'} · fracción ${saldo.lar.fracciones_usadas+1}/3</div></div>
+      <div class="metric-card"><div class="metric-label">L. Invierno</div><div class="metric-value">${saldo.invierno.usada?'Usada':'14'}</div><div class="metric-sub">${saldo.invierno.usada?'Ya utilizada este año':'días disponibles'}</div></div>`;
+  }
+  // Tabla
+  const cont = document.getElementById('mis-lic-table');
+  try {
+    const rows = await api('getSolicitudesAgente', { agente_id: currentUser.id });
+    if (!rows.length) { cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes</p>'; return; }
+    cont.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Dirigido a</th><th>Estado</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td>${r.tipo.toUpperCase()}</td><td>${r.fecha_inicio}</td><td>${r.fecha_fin}</td>
+        <td>${r.dias_habiles}</td><td style="max-width:150px;overflow:hidden;text-overflow:ellipsis">${r.dirigido_a}</td>
+        <td><span class="badge badge-${r.estado||'registrada'}">${r.estado||'registrada'}</span></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) { cont.innerHTML='<p style="color:var(--red);font-size:12px">Error: '+e.message+'</p>'; }
+}
+
+// ── SOLICITUDES ADMIN ──────────────────────────────────────
+async function cargarSolicitudes() {
+  const cont = document.getElementById('solicitudes-table');
+  cont.innerHTML='<div class="spinner-full"><div class="loading loading-dark"></div></div>';
+  try {
+    const est  = document.getElementById('fil-estado').value;
+    const tipo = document.getElementById('fil-tipo').value;
+    const rows = await api('getSolicitudes', { estado: est, tipo });
+    // Mapear agente_id a nombre
+    const agMap={};
+    agentes.forEach(a=>agMap[a.id]=a.apellido+', '+a.nombre);
+    if (!rows.length) { cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes</p>'; return; }
+    cont.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr><th>Agente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Acciones</th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td>${agMap[r.agente_id]||r.agente_id}</td>
+        <td>${r.tipo.toUpperCase()}</td><td>${r.fecha_inicio}</td><td>${r.fecha_fin}</td>
+        <td>${r.dias_habiles}</td>
+        <td><span class="badge badge-${r.estado||'registrada'}">${r.estado||'registrada'}</span></td>
+        <td><button class="btn btn-secondary btn-sm" onclick="abrirModalEstado('${r.id}','${r.estado}')">Actualizar</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e) { cont.innerHTML='<p style="color:var(--red);font-size:12px">Error: '+e.message+'</p>'; }
+}
+
+function abrirModalEstado(id, estadoActual) {
+  document.getElementById('est-id').value=id;
+  document.getElementById('est-estado').value=estadoActual||'presentada';
+  document.getElementById('est-obs').value='';
+  document.getElementById('modal-estado').classList.add('open');
+}
+async function guardarEstado() {
+  try {
+    await api('updateEstadoSolicitud', {
+      id: document.getElementById('est-id').value,
+      estado: document.getElementById('est-estado').value,
+      observaciones: document.getElementById('est-obs').value
+    });
+    cerrarModal('modal-estado');
+    cargarSolicitudes();
+  } catch(e) { alert(e.message); }
+}
+
+// ── CALENDARIO AUSENCIAS ───────────────────────────────────
+function calAbsMove(d) { calAbsMonth+=d; if(calAbsMonth>11){calAbsMonth=0;calAbsYear++;} if(calAbsMonth<0){calAbsMonth=11;calAbsYear--;} renderCalAbs(); }
+function switchTab(el, id) {
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active')); el.classList.add('active');
+  document.getElementById('cal-mensual').style.display = id==='cal-mensual'?'block':'none';
+  document.getElementById('cal-anual').style.display   = id==='cal-anual'?'block':'none';
+  renderCalAbs();
+}
+
+async function renderCalAbs() {
+  document.getElementById('cal-abs-title').textContent = MESES[calAbsMonth]+' '+calAbsYear;
+  try {
+    const rows = await api('getSolicitudes',{});
+    const ag   = (await api('getAgentes',{})).filter(a=>a.activo==='true').sort((a,b)=>(a.apellido+a.nombre).localeCompare(b.apellido+b.nombre));
+
+    // Vista mensual
+    const tabla = document.getElementById('cal-abs-table');
+    const dias  = new Date(calAbsYear, calAbsMonth+1, 0).getDate();
+    let head='<tr><th class="agent-col">Agente</th>';
+    for(let d=1;d<=dias;d++){
+      const f=new Date(calAbsYear,calAbsMonth,d);
+      const dw=f.getDay(); const fs=fmtDate(f);
+      const esFS=dw===0||dw===6; const esFer=!!feriados[fs];
+      const cls=esFer?'feriado-col':esFS?'weekend-col':'';
+      head+=`<th class="${cls}">${['D','L','M','X','J','V','S'][dw]}<br>${d}</th>`;
+    }
+    head+='</tr>';
+    let body='';
+    ag.forEach(a=>{
+      body+=`<tr><td class="agent-col">${a.apellido}, ${a.nombre}</td>`;
+      for(let d=1;d<=dias;d++){
+        const fs=fmtDate(new Date(calAbsYear,calAbsMonth,d));
+        const sol=rows.find(r=>r.agente_id===a.id&&r.estado!=='anulada'&&r.estado!=='rechazada'&&estaEnRango(fs,r.fecha_inicio,r.fecha_fin));
+        if(sol) body+=`<td class="absent">${sol.tipo.toUpperCase()}</td>`;
+        else { const f=new Date(calAbsYear,calAbsMonth,d); const dw=f.getDay(); body+=`<td class="${dw===0||dw===6?'weekend-col':feriados[fs]?'feriado-col':''}">&nbsp;</td>`; }
+      }
+      body+='</tr>';
+    });
+    tabla.innerHTML=head+body;
+
+    // Vista anual
+    const tablaA=document.getElementById('cal-anual-table');
+    const meses=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+    let headA=`<tr><th class="agent-col">Agente — ${calAbsYear}</th>${meses.map(m=>`<th>${m}</th>`).join('')}</tr>`;
+    let bodyA='';
+    ag.forEach(a=>{
+      bodyA+=`<tr><td class="agent-col">${a.apellido}, ${a.nombre}</td>`;
+      for(let m=0;m<12;m++){
+        const dias2=rows.filter(r=>r.agente_id===a.id&&r.estado!=='anulada'&&r.estado!=='rechazada'&&mesEnRango(calAbsYear,m,r.fecha_inicio,r.fecha_fin));
+        const tot=dias2.reduce((acc,r)=>acc+parseInt(r.dias_corridos||0),0);
+        bodyA += tot>0?`<td class="absent">${tot}d</td>`:'<td>&nbsp;</td>';
+      }
+      bodyA+='</tr>';
+    });
+    tablaA.innerHTML=headA+bodyA;
+  } catch(e) { console.error(e); }
+}
+
+function estaEnRango(fs, fi, ff) {
+  const d=parseDate(fs), i=parseDate(fi), f=parseDate(ff);
+  return d>=i && d<=f;
+}
+function mesEnRango(year, mes, fi, ff) {
+  const i=parseDate(fi), f=parseDate(ff);
+  const mInicio=new Date(year,mes,1), mFin=new Date(year,mes+1,0);
+  return i<=mFin && f>=mInicio;
+}
+
+// ── AGENTES ────────────────────────────────────────────────
+async function cargarAgentes() {
+  agentes = await api('getAgentes');
+  const secSel = document.getElementById('fil-seccion-ag');
+  secSel.innerHTML='<option value="">Todas las secciones</option>';
+  secciones.forEach(s=>{ const o=document.createElement('option'); o.value=s.id; o.textContent=s.nombre; secSel.appendChild(o); });
+  filtrarAgentes();
+}
+
+function filtrarAgentes() {
+  const q   = document.getElementById('buscar-agente').value.toLowerCase();
+  const sec = document.getElementById('fil-seccion-ag').value;
+  const fil = agentes.filter(a=>
+    (!q || (a.apellido+' '+a.nombre+' '+a.legajo).toLowerCase().includes(q)) &&
+    (!sec || a.seccion_id===sec)
+  ).sort((a,b)=>(a.apellido+a.nombre).localeCompare(b.apellido+b.nombre));
+  const secMap={};
+  secciones.forEach(s=>secMap[s.id]=s.nombre);
+  const cont=document.getElementById('agentes-table');
+  if(!fil.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin resultados</p>';return;}
+  cont.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Nombre</th><th>Legajo</th><th>Sección</th><th>Cargo</th><th>Ingreso</th><th>Estado</th><th></th></tr></thead>
+    <tbody>${fil.map(a=>`<tr>
+      <td>${a.apellido}, ${a.nombre}</td>
+      <td>${a.legajo}</td>
+      <td>${secMap[a.seccion_id]||a.seccion_id||'—'}</td>
+      <td>${a.cargo||'—'}</td>
+      <td>${a.fecha_ingreso||'—'}</td>
+      <td><span class="badge badge-${a.activo==='true'?'activo':'inactivo'}">${a.activo==='true'?'Activo':'Inactivo'}</span></td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-secondary btn-sm" onclick="abrirModalAgente('${a.id}')">Editar</button>
+        <button class="btn btn-secondary btn-sm" style="margin-left:4px" onclick="toggleAgente('${a.id}','${a.activo==='true'?'false':'true'}')">${a.activo==='true'?'Desactivar':'Activar'}</button>
+      </td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+
+function abrirModalAgente(id) {
+  const ag = id ? agentes.find(a=>a.id===id) : null;
+  document.getElementById('modal-agente-titulo').textContent = ag ? 'Editar agente' : 'Nuevo agente';
+  document.getElementById('ag-id').value        = ag?.id||'';
+  document.getElementById('ag-apellido').value  = ag?.apellido||'';
+  document.getElementById('ag-nombre').value    = ag?.nombre||'';
+  document.getElementById('ag-legajo').value    = ag?.legajo||'';
+  document.getElementById('ag-categoria').value = ag?.categoria||'';
+  document.getElementById('ag-cargo').value     = ag?.cargo||'Agente';
+  document.getElementById('ag-ingreso').value   = ag?.fecha_ingreso||'';
+  document.getElementById('ag-email').value     = ag?.email||'';
+  document.getElementById('ag-usuario').value   = ag?.usuario||'';
+  document.getElementById('ag-password').value  = '';
+  document.getElementById('ag-lar-override').value = ag?.dias_lar_override||'';
+  document.getElementById('ag-esadmin').checked = ag?.es_admin==='true';
+  document.getElementById('ag-activo').checked  = !ag || ag.activo==='true';
+  document.getElementById('modal-agente-error').style.display='none';
+  // Secciones
+  const sel=document.getElementById('ag-seccion');
+  sel.innerHTML='<option value="">— Sin sección —</option>';
+  secciones.forEach(s=>{const o=document.createElement('option');o.value=s.id;o.textContent=s.nombre;if(s.id===ag?.seccion_id)o.selected=true;sel.appendChild(o);});
+  document.getElementById('modal-agente').classList.add('open');
+}
+
+async function guardarAgente() {
+  const err=document.getElementById('modal-agente-error');
+  err.style.display='none';
+  try {
+    const payload={
+      id: document.getElementById('ag-id').value||undefined,
+      apellido:  document.getElementById('ag-apellido').value.trim(),
+      nombre:    document.getElementById('ag-nombre').value.trim(),
+      legajo:    document.getElementById('ag-legajo').value.trim(),
+      categoria: document.getElementById('ag-categoria').value.trim(),
+      cargo:     document.getElementById('ag-cargo').value,
+      seccion_id:document.getElementById('ag-seccion').value,
+      fecha_ingreso: document.getElementById('ag-ingreso').value,
+      email:     document.getElementById('ag-email').value.trim(),
+      usuario:   document.getElementById('ag-usuario').value.trim(),
+      password:  document.getElementById('ag-password').value,
+      dias_lar_override: document.getElementById('ag-lar-override').value,
+      es_admin:  document.getElementById('ag-esadmin').checked?'true':'false',
+      activo:    document.getElementById('ag-activo').checked?'true':'false',
+    };
+    if(!payload.apellido||!payload.legajo||!payload.usuario) throw new Error('Apellido, legajo y usuario son obligatorios.');
+    await api('saveAgente', payload);
+    cerrarModal('modal-agente');
+    cargarAgentes();
+  } catch(e) { err.textContent=e.message; err.style.display='block'; }
+}
+
+async function toggleAgente(id, nuevoEstado) {
+  if(!confirm('¿Confirmar cambio de estado?')) return;
+  await api('toggleAgente',{id, activo:nuevoEstado==='true'});
+  cargarAgentes();
+}
+
+// ── CONFIGURACIÓN ──────────────────────────────────────────
+function cargarConfigUI() {
+  if(config.mail_destino)            document.getElementById('cfg-mail').value=config.mail_destino;
+  if(config.lar_habilitada)          document.getElementById('cfg-lar-hab').checked=config.lar_habilitada==='true';
+  if(config.lar_periodo_inicio)      document.getElementById('cfg-lar-desde').value=isoToInput(config.lar_periodo_inicio);
+  if(config.lar_periodo_fin)         document.getElementById('cfg-lar-hasta').value=isoToInput(config.lar_periodo_fin);
+  if(config.invierno_habilitada)     document.getElementById('cfg-inv-hab').checked=config.invierno_habilitada==='true';
+  if(config.invierno_periodo_inicio) document.getElementById('cfg-inv-desde').value=isoToInput(config.invierno_periodo_inicio);
+  if(config.invierno_periodo_fin)    document.getElementById('cfg-inv-hasta').value=isoToInput(config.invierno_periodo_fin);
+  if(config.invierno_solo_lunes)     document.getElementById('cfg-inv-lunes').checked=config.invierno_solo_lunes==='true';
+  if(config.dias_entre_fracciones_lar) document.getElementById('cfg-lar-frac').value=config.dias_entre_fracciones_lar;
+  if(config.dias_entre_lar_invierno)   document.getElementById('cfg-lar-inv').value=config.dias_entre_lar_invierno;
+  if(config.dias_entre_invierno_lar)   document.getElementById('cfg-inv-lar').value=config.dias_entre_invierno_lar;
+}
+
+async function guardarConfigMail() {
+  try { await api('saveConfig',{mail_destino:document.getElementById('cfg-mail').value}); alert('✅ Guardado'); } catch(e){alert(e.message);}
+}
+async function guardarConfigPeriodos() {
+  try {
+    await api('saveConfig',{
+      lar_habilitada:           document.getElementById('cfg-lar-hab').checked?'true':'false',
+      lar_periodo_inicio:       inputToFmt(document.getElementById('cfg-lar-desde').value),
+      lar_periodo_fin:          inputToFmt(document.getElementById('cfg-lar-hasta').value),
+      invierno_habilitada:      document.getElementById('cfg-inv-hab').checked?'true':'false',
+      invierno_periodo_inicio:  inputToFmt(document.getElementById('cfg-inv-desde').value),
+      invierno_periodo_fin:     inputToFmt(document.getElementById('cfg-inv-hasta').value),
+      invierno_solo_lunes:      document.getElementById('cfg-inv-lunes').checked?'true':'false',
+    });
+    config = await api('getConfig'); alert('✅ Guardado');
+  } catch(e){alert(e.message);}
+}
+async function guardarConfigRestricciones() {
+  try {
+    await api('saveConfig',{
+      dias_entre_fracciones_lar: document.getElementById('cfg-lar-frac').value,
+      dias_entre_lar_invierno:   document.getElementById('cfg-lar-inv').value,
+      dias_entre_invierno_lar:   document.getElementById('cfg-inv-lar').value,
+    });
+    config=await api('getConfig'); alert('✅ Guardado');
+  } catch(e){alert(e.message);}
+}
+
+// ── FERIADOS ───────────────────────────────────────────────
+async function cargarFeriadosTabla() {
+  const cont=document.getElementById('feriados-table');
+  try {
+    const rows=await api('getFeriados');
+    if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin feriados cargados</p>';return;}
+    cont.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr><th>Fecha</th><th>Descripción</th><th></th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td>${r.fecha}</td><td>${r.descripcion}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="eliminarFeriado('${r.id}')">Eliminar</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+  } catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error</p>';}
+}
+async function agregarFeriado() {
+  const fecha=document.getElementById('nuevo-feriado-fecha').value;
+  const desc =document.getElementById('nuevo-feriado-desc').value.trim();
+  if(!fecha||!desc){alert('Completá fecha y descripción.');return;}
+  try {
+    await api('saveFeriado',{fecha:inputToFmt(fecha),descripcion:desc});
+    document.getElementById('nuevo-feriado-fecha').value='';
+    document.getElementById('nuevo-feriado-desc').value='';
+    feriados=await api('getFeriados').then(f=>{const m={};f.forEach(x=>m[x.fecha]=x.descripcion);return m;});
+    cargarFeriadosTabla(); renderCal();
+  } catch(e){alert(e.message);}
+}
+async function eliminarFeriado(id) {
+  if(!confirm('¿Eliminar feriado?'))return;
+  await api('deleteFeriado',{id});
+  feriados=await api('getFeriados').then(f=>{const m={};f.forEach(x=>m[x.fecha]=x.descripcion);return m;});
+  cargarFeriadosTabla(); renderCal();
+}
+
+// ── JERARQUÍA ──────────────────────────────────────────────
+async function cargarJerarquiaTabla() {
+  const cont=document.getElementById('jerarquia-table');
+  try {
+    const rows=await api('getJerarquia');
+    if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin cargos cargados</p>';return;}
+    cont.innerHTML=`<div class="table-wrap"><table>
+      <thead><tr><th>Nombre</th><th>Cargo</th><th></th></tr></thead>
+      <tbody>${rows.map(r=>`<tr>
+        <td>${r.nombre}</td><td>${r.cargo}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="eliminarJerarquia('${r.id}')">Eliminar</button></td>
+      </tr>`).join('')}</tbody></table></div>`;
+    // Actualizar desplegable del formulario
+    cargarDestinatarios();
+  } catch(e){}
+}
+async function agregarJerarquia() {
+  const n=document.getElementById('nuevo-jer-nombre').value.trim();
+  const c=document.getElementById('nuevo-jer-cargo').value;
+  if(!n){alert('Ingresá el nombre.');return;}
+  await api('saveJerarquia',{nombre:n,cargo:c,orden:'99'});
+  document.getElementById('nuevo-jer-nombre').value='';
+  jerarquia=await api('getJerarquia');
+  cargarJerarquiaTabla();
+}
+async function eliminarJerarquia(id) {
+  if(!confirm('¿Eliminar?'))return;
+  await api('deleteJerarquia',{id});
+  jerarquia=await api('getJerarquia');
+  cargarJerarquiaTabla();
+}
+
+// ── SECCIONES ──────────────────────────────────────────────
+async function cargarSeccionesTabla() {
+  const cont=document.getElementById('secciones-table');
+  const rows=await api('getSecciones');
+  if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin secciones</p>';return;}
+  cont.innerHTML=`<div class="table-wrap"><table>
+    <thead><tr><th>Nombre</th><th></th></tr></thead>
+    <tbody>${rows.map(r=>`<tr>
+      <td>${r.nombre}</td>
+      <td><button class="btn btn-danger btn-sm" onclick="eliminarSeccion('${r.id}')">Eliminar</button></td>
+    </tr>`).join('')}</tbody></table></div>`;
+}
+async function agregarSeccion() {
+  const n=document.getElementById('nueva-seccion').value.trim();
+  if(!n){alert('Ingresá el nombre.');return;}
+  await api('saveSeccion',{nombre:n});
+  document.getElementById('nueva-seccion').value='';
+  secciones=await api('getSecciones');
+  cargarSeccionesTabla();
+}
+async function eliminarSeccion(id) {
+  if(!confirm('¿Eliminar sección?'))return;
+  await api('deleteSeccion',{id});
+  secciones=await api('getSecciones');
+  cargarSeccionesTabla();
+}
+
+// ── MODALES ────────────────────────────────────────────────
+function cerrarModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// ── UTILIDADES FECHA ───────────────────────────────────────
+function fmtDate(d) {
+  const dd=String(d.getDate()).padStart(2,'0');
+  const mm=String(d.getMonth()+1).padStart(2,'0');
+  return `${dd}/${mm}/${d.getFullYear()}`;
+}
+function fmtDateLargo(d) {
+  const ds=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+  const ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  return `${ds[d.getDay()]} ${d.getDate()} de ${ms[d.getMonth()]} de ${d.getFullYear()}`;
+}
+function parseDate(str) {
+  if(!str)return new Date(0);
+  if(str.includes('/')) { const [d,m,y]=str.split('/'); return new Date(+y,+m-1,+d); }
+  if(str.includes('-')&&str.length===10) { const [y,m,d]=str.split('-'); return new Date(+y,+m-1,+d); }
+  return new Date(str);
+}
+function inputToFmt(val) { if(!val)return ''; const [y,m,d]=val.split('-'); return `${d}/${m}/${y}`; }
+function isoToInput(fmt) { if(!fmt)return ''; const [d,m,y]=fmt.split('/'); return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`; }
+</script>
+</body>
+</html>
