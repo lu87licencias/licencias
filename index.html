@@ -613,9 +613,9 @@ function nav(el){
   document.getElementById('screen-'+sc).classList.add('active');
   if(sc==='mis-licencias')cargarMisLicencias();
   if(sc==='solicitudes')cargarSolicitudes();
-  if(sc==='calendario'){calAbsYear=new Date().getFullYear();calAbsMonth=new Date().getMonth();renderCalAbs();}
+  if(sc==='calendario'){calAbsYear=new Date().getFullYear();calAbsMonth=new Date().getMonth();recargarFeriadosYCalendario();}
   if(sc==='agentes')cargarAgentes();
-  if(sc==='mi-calendario')renderMiCal();
+  if(sc==='mi-calendario'){recargarFeriados().then(()=>renderMiCal());}
 }
 
 function llenarDatosSolicitud(){
@@ -681,7 +681,7 @@ function actualizarFraccion(){
   document.getElementById('lar-dias-hint').textContent='Mínimo 5 días · Disponibles: '+saldo.lar.disponibles;
 }
 
-function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}renderCal();}
+function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}recargarFeriados().then(()=>renderCal());}
 
 function renderCal(){
   document.getElementById('cal-title').textContent=MESES[calMonth]+' '+calYear;
@@ -1085,7 +1085,7 @@ async function cargarMisLicencias(){
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error</p>';}
 }
 
-function miCalMove(d){miCalMonth+=d;if(miCalMonth>11){miCalMonth=0;miCalYear++;}if(miCalMonth<0){miCalMonth=11;miCalYear--;}renderMiCal();}
+function miCalMove(d){miCalMonth+=d;if(miCalMonth>11){miCalMonth=0;miCalYear++;}if(miCalMonth<0){miCalMonth=11;miCalYear--;}recargarFeriados().then(()=>renderMiCal());}
 
 async function renderMiCal(){
   document.getElementById('mi-cal-title').textContent=MESES[miCalMonth]+' '+miCalYear;
@@ -1153,11 +1153,19 @@ async function guardarEstado(){
   }catch(e){alert(e.message);}
 }
 
+async function recargarFeriados(){
+  feriados=await api('getFeriados').then(f=>{const m={};f.forEach(x=>m[x.fecha]=x.descripcion);return m;});
+}
+async function recargarFeriadosYCalendario(){
+  await recargarFeriados();
+  renderCalAbs();
+}
+
 function calAbsMove(d){
   calAbsMonth+=d;
   if(calAbsMonth>11){calAbsMonth=0;calAbsYear++;}
   if(calAbsMonth<0){calAbsMonth=11;calAbsYear--;}
-  renderCalAbs();
+  recargarFeriadosYCalendario();
 }
 
 function switchTab(el,id){
@@ -1362,8 +1370,27 @@ document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('clic
 function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
 function fmtDateLargo(d){const ds=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];const ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];return ds[d.getDay()]+' '+d.getDate()+' de '+ms[d.getMonth()]+' de '+d.getFullYear();}
 function parseDate(str){if(!str)return new Date(0);if(str.includes('/')){const[dd,mm,yy]=str.split('/');return new Date(+yy,+mm-1,+dd);}if(str.length===10&&str.includes('-')){const[yy,mm,dd]=str.split('-');return new Date(+yy,+mm-1,+dd);}return new Date(str);}
-function inputToFmt(val){if(!val)return '';const[y,m,d]=val.split('-');return d+'/'+m+'/'+y;}
-function isoToInput(fmt){if(!fmt)return '';const p=fmt.split('/');if(p.length!==3)return '';return p[2]+'-'+p[1].padStart(2,'0')+'-'+p[0].padStart(2,'0');}
+function inputToFmt(val){
+  if(!val)return '';
+  if(val.includes('-')&&val.length===10){
+    const p=val.split('-');
+    return p[2].padStart(2,'0')+'/'+p[1].padStart(2,'0')+'/'+p[0];
+  }
+  return val;
+}
+function isoToInput(fmt){
+  if(!fmt)return '';
+  // Formato guardado: dd/MM/yyyy → necesitamos yyyy-MM-dd para input type=date
+  if(fmt.includes('/')){
+    const p=fmt.split('/');
+    if(p.length!==3)return '';
+    const d=p[0].padStart(2,'0');
+    const m=p[1].padStart(2,'0');
+    const y=p[2];
+    return y+'-'+m+'-'+d;
+  }
+  return fmt;
+}
 </script>
 </body>
 </html>
