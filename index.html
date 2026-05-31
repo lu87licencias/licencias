@@ -1126,8 +1126,17 @@ async function cargarSolicitudes(){
     if(!agentes.length)agentes=await api('getAgentes');
     const agMap={};agentes.forEach(a=>agMap[a.id]=a.apellido+', '+a.nombre);
     if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes</p>';return;}
-    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Agente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Observación</th><th></th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+(agMap[r.agente_id]||r.agente_id)+'</td><td>'+r.tipo.toUpperCase()+'</td><td>'+r.fecha_inicio+'</td><td>'+r.fecha_fin+'</td><td>'+r.dias_habiles+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--gray-500)" title="'+(r.observaciones||'')+'">'+(r.observaciones||'—')+'</td><td><button class="btn btn-secondary btn-sm" onclick="abrirModalEstado(\''+r.id+'\',\''+r.estado+'\','+JSON.stringify(r.observaciones||'')+')">Actualizar</button></td></tr>').join('')+'</tbody></table></div>';
+    // Guardar las solicitudes en un mapa global para acceder desde el botón
+    window._solicitudesMap = {};
+    rows.forEach(function(r){ window._solicitudesMap[r.id] = r; });
+    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Agente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Observación</th><th></th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+(agMap[r.agente_id]||r.agente_id)+'</td><td>'+r.tipo.toUpperCase()+'</td><td>'+r.fecha_inicio+'</td><td>'+r.fecha_fin+'</td><td>'+r.dias_habiles+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--gray-500)" title="'+(r.observaciones||'')+'">'+(r.observaciones||'—')+'</td><td><button class="btn btn-secondary btn-sm" data-sol-id="'+r.id+'" onclick="abrirModalEstadoById(this.dataset.solId)">Actualizar</button></td></tr>').join('')+'</tbody></table></div>';
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error: '+e.message+'</p>';}
+}
+
+function abrirModalEstadoById(id){
+  const r=window._solicitudesMap&&window._solicitudesMap[id];
+  if(!r){alert('No se encontró la solicitud. Recargá la lista.');return;}
+  abrirModalEstado(r.id, r.estado, r.observaciones||'');
 }
 
 function abrirModalEstado(id,estadoActual,obsActual){
