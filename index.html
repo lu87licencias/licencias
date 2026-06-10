@@ -110,6 +110,19 @@ tr:hover td{background:var(--gray-50)}
 .cal-day.cal-absent-pres{background:#fdba74;color:#7c2d12}
 .cal-day.cal-absent-apro{background:#bbf7d0;color:#166534}
 .cal-day.cal-disabled{color:var(--gray-300);cursor:default}
+.cal-day.cal-absent-reg.cal-weekend{background:#fef08a;outline:2px solid #7c3aed;outline-offset:-2px}
+.cal-day.cal-absent-pres.cal-weekend{background:#fdba74;outline:2px solid #7c3aed;outline-offset:-2px}
+.cal-day.cal-absent-apro.cal-weekend{background:#bbf7d0;outline:2px solid #7c3aed;outline-offset:-2px}
+.cal-day.cal-absent-reg.cal-holiday{background:#fef08a;outline:2px solid #ea580c;outline-offset:-2px}
+.cal-day.cal-absent-pres.cal-holiday{background:#fdba74;outline:2px solid #ea580c;outline-offset:-2px}
+.cal-day.cal-absent-apro.cal-holiday{background:#bbf7d0;outline:2px solid #ea580c;outline-offset:-2px}
+/* Calendario admin: mismo efecto en celdas de tabla */
+.cal-abs-table td.abs-registrada.feriado-col{background:#fef08a!important;outline:2px solid #ea580c;outline-offset:-1px}
+.cal-abs-table td.abs-presentada.feriado-col{background:#fdba74!important;outline:2px solid #ea580c;outline-offset:-1px}
+.cal-abs-table td.abs-aprobada.feriado-col{background:#86efac!important;outline:2px solid #ea580c;outline-offset:-1px}
+.cal-abs-table td.abs-registrada.weekend-col{background:#fef08a!important;outline:2px solid #7c3aed;outline-offset:-1px}
+.cal-abs-table td.abs-presentada.weekend-col{background:#fdba74!important;outline:2px solid #7c3aed;outline-offset:-1px}
+.cal-abs-table td.abs-aprobada.weekend-col{background:#86efac!important;outline:2px solid #7c3aed;outline-offset:-1px}
 .cal-day.cal-empty{pointer-events:none}
 .cal-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
 .cal-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-500)}
@@ -164,6 +177,11 @@ tr:hover td{background:var(--gray-50)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner-full{display:flex;align-items:center;justify-content:center;padding:3rem}
 @media(max-width:640px){.sidebar{display:none}.grid-2,.metric-grid{grid-template-columns:1fr}.lic-selector{grid-template-columns:1fr}}
+/* Calendario doble (estilo hotel) */
+.dual-cal{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+.dual-cal-month{flex:1}
+.dual-cal-month .cal-nav-title{font-size:13px;font-weight:600;text-align:center;padding:4px 0;margin-bottom:8px}
+@media(max-width:700px){.dual-cal{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -270,12 +288,21 @@ tr:hover td{background:var(--gray-50)}
         </div>
         <div class="card">
           <div class="card-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Selección de días</div>
-          <div class="cal-nav">
-            <button class="btn btn-secondary btn-sm" onclick="calMove(-1)">‹ Anterior</button>
-            <span class="cal-nav-title" id="cal-title">—</span>
-            <button class="btn btn-secondary btn-sm" onclick="calMove(1)">Siguiente ›</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <button class="btn btn-secondary btn-sm" onclick="calMove(-1)">‹</button>
+            <span style="font-size:13px;color:var(--gray-500)">Seleccioná el día de inicio</span>
+            <button class="btn btn-secondary btn-sm" onclick="calMove(1)">›</button>
           </div>
-          <div class="cal-grid" id="cal-grid"></div>
+          <div class="dual-cal">
+            <div class="dual-cal-month">
+              <div class="cal-nav-title" id="cal-title">—</div>
+              <div class="cal-grid" id="cal-grid"></div>
+            </div>
+            <div class="dual-cal-month">
+              <div class="cal-nav-title" id="cal-title-2">—</div>
+              <div class="cal-grid" id="cal-grid-2"></div>
+            </div>
+          </div>
           <div class="cal-legend">
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue)"></div>Inicio/fin</div>
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Período</div>
@@ -316,12 +343,21 @@ tr:hover td{background:var(--gray-50)}
       <div class="screen" id="screen-mi-calendario">
         <div class="page-header"><h2>Calendario de licencias</h2><p>Tus licencias registradas, presentadas y aprobadas</p></div>
         <div class="card">
-          <div class="cal-nav">
-            <button class="btn btn-secondary btn-sm" onclick="miCalMove(-1)">‹ Anterior</button>
-            <span class="cal-nav-title" id="mi-cal-title">—</span>
-            <button class="btn btn-secondary btn-sm" onclick="miCalMove(1)">Siguiente ›</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <button class="btn btn-secondary btn-sm" onclick="miCalMove(-1)">‹</button>
+            <span style="font-size:13px;color:var(--gray-500)" id="mi-cal-title">—</span>
+            <button class="btn btn-secondary btn-sm" onclick="miCalMove(1)">›</button>
           </div>
-          <div class="cal-grid" id="mi-cal-grid"></div>
+          <div class="dual-cal">
+            <div class="dual-cal-month">
+              <div class="cal-nav-title" id="mi-cal-title-left">—</div>
+              <div class="cal-grid" id="mi-cal-grid"></div>
+            </div>
+            <div class="dual-cal-month">
+              <div class="cal-nav-title" id="mi-cal-title-right">—</div>
+              <div class="cal-grid" id="mi-cal-grid-2"></div>
+            </div>
+          </div>
           <div class="cal-legend" style="margin-top:12px">
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fef08a;border:1px solid #ca8a04"></div>Registrada</div>
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fdba74;border:1px solid #ea580c"></div>Presentada</div>
@@ -683,15 +719,17 @@ function actualizarFraccion(){
 
 function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}recargarFeriados().then(()=>renderCal());}
 
-function renderCal(){
-  document.getElementById('cal-title').textContent=MESES[calMonth]+' '+calYear;
-  const grid=document.getElementById('cal-grid');
+
+// Renderiza un mes completo en el grid indicado
+function renderCalMes(gridId,year,month){
+  const grid=document.getElementById(gridId);
+  if(!grid)return;
   grid.innerHTML=['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d=>'<div class="cal-head">'+d+'</div>').join('');
-  const primer=new Date(calYear,calMonth,1),dow=(primer.getDay()+6)%7;
+  const primer=new Date(year,month,1),dow=(primer.getDay()+6)%7;
   for(let i=0;i<dow;i++)grid.innerHTML+='<div class="cal-day cal-empty"></div>';
-  const total=new Date(calYear,calMonth+1,0).getDate();
+  const total=new Date(year,month+1,0).getDate();
   for(let d=1;d<=total;d++){
-    const fecha=new Date(calYear,calMonth,d),fstr=fmtDate(fecha),dw=fecha.getDay();
+    const fecha=new Date(year,month,d),fstr=fmtDate(fecha),dw=fecha.getDay();
     const esFS=dw===0||dw===6,esFer=!!feriados[fstr];
     let cls='cal-day';
     if(esFS)cls+=' cal-weekend';
@@ -704,8 +742,47 @@ function renderCal(){
     }
     const bloq=esFer||(licTipo==='invierno'&&config.invierno_solo_lunes==='true'&&!selInicio&&dw!==1);
     if(bloq&&!esFS&&!esFer)cls+=' cal-disabled';
-    grid.innerHTML+='<div class="'+cls+'" onclick="clickDia(\''+fstr+'\','+esFS+','+esFer+')">'+d+'</div>';
+    grid.innerHTML+='<div class="'+cls+'" onclick="clickDia(''+fstr+'','+esFS+','+esFer+')">'+d+'</div>';
   }
+}
+
+// Renderiza un mes del calendario del agente (solo lectura)
+function renderCalMesAgente(gridId,year,month,solicitudes){
+  const grid=document.getElementById(gridId);
+  if(!grid)return;
+  grid.innerHTML=['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d=>'<div class="cal-head">'+d+'</div>').join('');
+  const primer=new Date(year,month,1),dow=(primer.getDay()+6)%7;
+  for(let i=0;i<dow;i++)grid.innerHTML+='<div class="cal-day cal-empty"></div>';
+  const total=new Date(year,month+1,0).getDate();
+  const detalle=[];
+  for(let d=1;d<=total;d++){
+    const fecha=new Date(year,month,d),fstr=fmtDate(fecha),dw=fecha.getDay();
+    const esFS=dw===0||dw===6,esFer=!!feriados[fstr];
+    let cls='cal-day';
+    if(esFS)cls+=' cal-weekend';
+    if(esFer)cls+=' cal-holiday';
+    const sol=solicitudes.find(r=>r.estado!=='anulada'&&r.estado!=='rechazada'&&estaEnRango(fstr,r.fecha_inicio,r.fecha_fin));
+    if(sol){
+      if(sol.estado==='registrada')cls+=' cal-absent-reg';
+      else if(sol.estado==='presentada')cls+=' cal-absent-pres';
+      else if(sol.estado==='aprobada')cls+=' cal-absent-apro';
+      if(!detalle.find(x=>x.id===sol.id))detalle.push(sol);
+    }
+    grid.innerHTML+='<div class="'+cls+'">'+d+'</div>';
+  }
+  return detalle;
+}
+
+function renderCal(){
+  // Mes actual
+  const m1=calMonth,y1=calYear;
+  // Mes siguiente
+  let m2=m1+1,y2=y1;
+  if(m2>11){m2=0;y2++;}
+  document.getElementById('cal-title').textContent=MESES[m1]+' '+y1;
+  const t2=document.getElementById('cal-title-2');if(t2)t2.textContent=MESES[m2]+' '+y2;
+  renderCalMes('cal-grid',y1,m1);
+  renderCalMes('cal-grid-2',y2,m2);
 }
 
 function clickDia(fstr,esFS,esFer){
@@ -1070,7 +1147,7 @@ async function cargarHistorialSolicitud(){
     if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes registradas</p>';return;}
     const ico={lar:'lar','14f':'f14',invierno:'invierno'};
     const lbl={lar:'LAR','14f':'14F',invierno:'INV'};
-    cont.innerHTML=rows.slice(0,8).map(r=>'<div class="hist-item"><div class="hist-icon '+(ico[r.tipo]||'lar')+'">'+lbl[r.tipo]+'</div><div class="hist-info"><div class="hist-name">'+(r.tipo==='14f'?'Art. 14F — Razones particulares':r.tipo==='invierno'?'Licencia Especial de Invierno':'Licencia Anual Reglamentaria')+'</div><div class="hist-date">'+r.fecha_inicio+(r.fecha_fin!==r.fecha_inicio?' al '+r.fecha_fin:'')+' · '+r.dias_habiles+' día(s) · <span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></div></div></div>').join('');
+    cont.innerHTML=rows.slice(0,8).map(r=>'<div class="hist-item"><div class="hist-icon '+(ico[r.tipo]||'lar')+'">'+lbl[r.tipo]+'</div><div class="hist-info"><div class="hist-name">'+(r.tipo==='14f'?'Art. 14F — Razones particulares':r.tipo==='invierno'?'Licencia Especial de Invierno':'Licencia Anual Reglamentaria')+'</div><div class="hist-date">'+normalizarFecha(r.fecha_inicio)+(r.fecha_fin!==r.fecha_inicio?' al '+normalizarFecha(r.fecha_fin):'')+' · '+r.dias_habiles+' día(s) · <span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></div></div></div>').join('');
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error al cargar</p>';}
 }
 
@@ -1081,40 +1158,31 @@ async function cargarMisLicencias(){
   try{
     const rows=await api('getSolicitudesAgente',{agente_id:currentUser.id});
     if(!rows.length){cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:1rem">Sin solicitudes</p>';return;}
-    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Dirigido a</th><th>Estado</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.tipo.toUpperCase()+'</td><td>'+r.fecha_inicio+'</td><td>'+r.fecha_fin+'</td><td>'+r.dias_habiles+'</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.dirigido_a+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td></tr>').join('')+'</tbody></table></div>';
+    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Dirigido a</th><th>Estado</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+r.tipo.toUpperCase()+'</td><td>'+normalizarFecha(r.fecha_inicio)+'</td><td>'+normalizarFecha(r.fecha_fin)+'</td><td>'+r.dias_habiles+(r.tipo==='lar'?' ('+( parseInt(r.dias_corridos||0)>parseInt(r.dias_habiles||0)?'Corridos':'Hábiles' )+')'  :'')+'</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+r.dirigido_a+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td></tr>').join('')+'</tbody></table></div>';
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error</p>';}
 }
 
 function miCalMove(d){miCalMonth+=d;if(miCalMonth>11){miCalMonth=0;miCalYear++;}if(miCalMonth<0){miCalMonth=11;miCalYear--;}recargarFeriados().then(()=>renderMiCal());}
 
 async function renderMiCal(){
-  document.getElementById('mi-cal-title').textContent=MESES[miCalMonth]+' '+miCalYear;
-  const grid=document.getElementById('mi-cal-grid');
-  grid.innerHTML=['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d=>'<div class="cal-head">'+d+'</div>').join('');
+  const m1=miCalMonth,y1=miCalYear;
+  let m2=m1+1,y2=y1;if(m2>11){m2=0;y2++;}
+  // Título centrado
+  const titleEl=document.getElementById('mi-cal-title');
+  if(titleEl)titleEl.textContent=MESES[m1]+' '+y1+' — '+MESES[m2]+' '+y2;
+  const leftEl=document.getElementById('mi-cal-title-left');if(leftEl)leftEl.textContent=MESES[m1]+' '+y1;
+  const rightEl=document.getElementById('mi-cal-title-right');if(rightEl)rightEl.textContent=MESES[m2]+' '+y2;
   let misSol=[];
   try{misSol=await api('getSolicitudesAgente',{agente_id:currentUser.id});}catch(e){}
-  const primer=new Date(miCalYear,miCalMonth,1),dow=(primer.getDay()+6)%7;
-  for(let i=0;i<dow;i++)grid.innerHTML+='<div class="cal-day cal-empty"></div>';
-  const total=new Date(miCalYear,miCalMonth+1,0).getDate();
-  const detalle=[];
-  for(let d=1;d<=total;d++){
-    const fecha=new Date(miCalYear,miCalMonth,d),fstr=fmtDate(fecha),dw=fecha.getDay();
-    const esFS=dw===0||dw===6,esFer=!!feriados[fstr];
-    let cls='cal-day';
-    if(esFS)cls+=' cal-weekend';
-    if(esFer)cls+=' cal-holiday';
-    const sol=misSol.find(r=>r.estado!=='anulada'&&r.estado!=='rechazada'&&estaEnRango(fstr,r.fecha_inicio,r.fecha_fin));
-    if(sol){
-      if(sol.estado==='registrada')cls+=' cal-absent-reg';
-      else if(sol.estado==='presentada')cls+=' cal-absent-pres';
-      else if(sol.estado==='aprobada')cls+=' cal-absent-apro';
-      if(!detalle.find(x=>x.id===sol.id))detalle.push(sol);
-    }
-    grid.innerHTML+='<div class="'+cls+'">'+d+'</div>';
-  }
+  const detalle1=renderCalMesAgente('mi-cal-grid',y1,m1,misSol)||[];
+  const detalle2=renderCalMesAgente('mi-cal-grid-2',y2,m2,misSol)||[];
+  // Combinar detalles sin duplicados
+  const detalleMap={};
+  [...detalle1,...detalle2].forEach(r=>{detalleMap[r.id]=r;});
+  const detalle=Object.values(detalleMap);
   const cont=document.getElementById('mi-cal-detalle');
   const lbl={lar:'LAR','14f':'14F',invierno:'L.Invierno'};
-  cont.innerHTML=detalle.map(r=>'<div class="card" style="padding:.75rem 1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge badge-'+r.estado+'">'+r.estado+'</span><strong>'+(lbl[r.tipo]||r.tipo)+'</strong><span style="font-size:13px;color:var(--gray-600)">'+r.fecha_inicio+' al '+r.fecha_fin+'</span><span style="font-size:12px;color:var(--gray-500)">Dirigido a: '+r.dirigido_a+'</span></div>').join('');
+  cont.innerHTML=detalle.map(r=>'<div class="card" style="padding:.75rem 1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge badge-'+r.estado+'">'+r.estado+'</span><strong>'+(lbl[r.tipo]||r.tipo)+'</strong><span style="font-size:13px;color:var(--gray-600)">'+normalizarFecha(r.fecha_inicio)+' al '+normalizarFecha(r.fecha_fin)+'</span><span style="font-size:12px;color:var(--gray-500)">Dirigido a: '+r.dirigido_a+'</span></div>').join('');
 }
 
 async function cargarSolicitudes(){
@@ -1129,7 +1197,7 @@ async function cargarSolicitudes(){
     // Guardar las solicitudes en un mapa global para acceder desde el botón
     window._solicitudesMap = {};
     rows.forEach(function(r){ window._solicitudesMap[r.id] = r; });
-    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Agente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Observación</th><th></th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+(agMap[r.agente_id]||r.agente_id)+'</td><td>'+r.tipo.toUpperCase()+'</td><td>'+r.fecha_inicio+'</td><td>'+r.fecha_fin+'</td><td>'+r.dias_habiles+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--gray-500)" title="'+(r.observaciones||'')+'">'+(r.observaciones||'—')+'</td><td><button class="btn btn-secondary btn-sm" data-sol-id="'+r.id+'" onclick="abrirModalEstadoById(this.dataset.solId)">Actualizar</button></td></tr>').join('')+'</tbody></table></div>';
+    cont.innerHTML='<div class="table-wrap"><table><thead><tr><th>Agente</th><th>Tipo</th><th>Desde</th><th>Hasta</th><th>Días</th><th>Estado</th><th>Observación</th><th></th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+(agMap[r.agente_id]||r.agente_id)+'</td><td>'+r.tipo.toUpperCase()+'</td><td>'+normalizarFecha(r.fecha_inicio)+'</td><td>'+normalizarFecha(r.fecha_fin)+'</td><td>'+r.dias_habiles+' '+(r.tipo==='lar'?'('+( (agentes.find(a=>a.id===r.agente_id)||{}).anios_previos>0||(new Date().getFullYear()-1-new Date((agentes.find(a=>a.id===r.agente_id)||{fecha_ingreso:'2000-01-01'}).fecha_ingreso).getFullYear()+(parseInt((agentes.find(a=>a.id===r.agente_id)||{anios_previos:0}).anios_previos)||0))>=20 ? 'Hábiles':'Corridos' )+')'  :'')+'</td><td><span class="badge badge-'+(r.estado||'registrada')+'">'+(r.estado||'registrada')+'</span></td><td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;color:var(--gray-500)" title="'+(r.observaciones||'')+'">'+(r.observaciones||'—')+'</td><td><button class="btn btn-secondary btn-sm" data-sol-id="'+r.id+'" onclick="abrirModalEstadoById(this.dataset.solId)">Actualizar</button></td></tr>').join('')+'</tbody></table></div>';
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error: '+e.message+'</p>';}
 }
 
@@ -1219,8 +1287,10 @@ async function renderCalAbs(){
       for(let d=1;d<=dias;d++){
         const f=new Date(calAbsYear,calAbsMonth,d),fs=fmtDate(f),dw=f.getDay();
         const sol=rows.find(r=>r.agente_id===a.id&&r.estado!=='anulada'&&r.estado!=='rechazada'&&estaEnRango(fs,r.fecha_inicio,r.fecha_fin));
-        if(sol)body+='<td class="abs-'+sol.estado+'">'+sol.tipo.toUpperCase()+'</td>';
-        else body+='<td class="'+(feriados[fs]?'feriado-col':dw===0||dw===6?'weekend-col':'')+'">&nbsp;</td>';
+        if(sol){
+          const extraCls=feriados[fs]?'feriado-col':dw===0||dw===6?'weekend-col':'';
+          body+='<td class="abs-'+sol.estado+(extraCls?' '+extraCls:'')+'">'+sol.tipo.toUpperCase()+'</td>';
+        } else body+='<td class="'+(feriados[fs]?'feriado-col':dw===0||dw===6?'weekend-col':'')+'">&nbsp;</td>';
       }
       body+='</tr>';
     });
@@ -1246,8 +1316,25 @@ async function renderCalAbs(){
   }catch(e){console.error(e);}
 }
 
-function estaEnRango(fs,fi,ff){const d=parseDate(fs),i=parseDate(fi),f=parseDate(ff);return d>=i&&d<=f;}
-function mesEnRango(y,m,fi,ff){const i=parseDate(fi),f=parseDate(ff),mI=new Date(y,m,1),mF=new Date(y,m+1,0);return i<=mF&&f>=mI;}
+function estaEnRango(fs,fi,ff){
+  // Normalizar todos los formatos a dd/MM/yyyy antes de parsear
+  const d=parseDate(normalizarFecha(fs));
+  const i=parseDate(normalizarFecha(fi));
+  const f=parseDate(normalizarFecha(ff));
+  if(isNaN(i)||isNaN(f)||isNaN(d))return false;
+  // Comparar solo por fecha (sin hora)
+  const dv=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const iv=new Date(i.getFullYear(),i.getMonth(),i.getDate());
+  const fv=new Date(f.getFullYear(),f.getMonth(),f.getDate());
+  return dv>=iv&&dv<=fv;
+}
+function mesEnRango(y,m,fi,ff){
+  const i=parseDate(normalizarFecha(fi));
+  const f=parseDate(normalizarFecha(ff));
+  const mI=new Date(y,m,1),mF=new Date(y,m+1,0);
+  if(isNaN(i)||isNaN(f))return false;
+  return i<=mF&&f>=mI;
+}
 
 async function cargarAgentes(){
   agentes=await api('getAgentes');
@@ -1378,7 +1465,19 @@ document.querySelectorAll('.modal-backdrop').forEach(m=>m.addEventListener('clic
 
 function fmtDate(d){return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
 function fmtDateLargo(d){const ds=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];const ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];return ds[d.getDay()]+' '+d.getDate()+' de '+ms[d.getMonth()]+' de '+d.getFullYear();}
-function parseDate(str){if(!str)return new Date(0);if(str.includes('/')){const[dd,mm,yy]=str.split('/');return new Date(+yy,+mm-1,+dd);}if(str.length===10&&str.includes('-')){const[yy,mm,dd]=str.split('-');return new Date(+yy,+mm-1,+dd);}return new Date(str);}
+function parseDate(str){
+  if(!str)return new Date(0);
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(str)){const p=str.split('/');return new Date(+p[2],+p[1]-1,+p[0]);}
+  if(/^\d{4}-\d{2}-\d{2}$/.test(str)){const p=str.split('-');return new Date(+p[0],+p[1]-1,+p[2]);}
+  const d=new Date(str);return isNaN(d)?new Date(0):d;
+}
+function normalizarFecha(str){
+  if(!str||str.trim()===''||str==='undefined')return '—';
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(str.trim()))return str.trim();
+  const d=parseDate(str);
+  if(isNaN(d)||d.getTime()===0)return str;
+  return fmtDate(d);
+}
 function inputToFmt(val){
   if(!val)return '';
   if(val.includes('-')&&val.length===10){
