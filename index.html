@@ -742,7 +742,7 @@ function renderCalMes(gridId,year,month){
     }
     const bloq=esFer||(licTipo==='invierno'&&config.invierno_solo_lunes==='true'&&!selInicio&&dw!==1);
     if(bloq&&!esFS&&!esFer)cls+=' cal-disabled';
-    grid.innerHTML+='<div class="'+cls+'" onclick="clickDia(''+fstr+'','+esFS+','+esFer+')">'+d+'</div>';
+    grid.innerHTML+='<div class="'+cls+'" data-fstr="'+fstr+'" data-fs="'+esFS+'" data-fer="'+esFer+'" onclick="clickDiaEl(this)">'+d+'</div>';
   }
 }
 
@@ -783,6 +783,13 @@ function renderCal(){
   const t2=document.getElementById('cal-title-2');if(t2)t2.textContent=MESES[m2]+' '+y2;
   renderCalMes('cal-grid',y1,m1);
   renderCalMes('cal-grid-2',y2,m2);
+}
+
+function clickDiaEl(el){
+  var fstr=el.dataset.fstr;
+  var esFS=el.dataset.fs==='true';
+  var esFer=el.dataset.fer==='true';
+  clickDia(fstr,esFS,esFer);
 }
 
 function clickDia(fstr,esFS,esFer){
