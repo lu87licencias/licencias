@@ -182,11 +182,17 @@ tr:hover td{background:var(--gray-50)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spinner-full{display:flex;align-items:center;justify-content:center;padding:3rem}
 @media(max-width:640px){.sidebar{display:none}.grid-2,.metric-grid{grid-template-columns:1fr}.lic-selector{grid-template-columns:1fr}}
-/* Calendario doble (estilo hotel) */
+/* Calendario doble (solicitud) */
 .dual-cal{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 .dual-cal-month{flex:1}
 .dual-cal-month .cal-nav-title{font-size:13px;font-weight:600;text-align:center;padding:4px 0;margin-bottom:8px}
-@media(max-width:700px){.dual-cal{grid-template-columns:1fr}}
+/* Calendario 12 meses (agente) */
+#mi-cal-grid-container{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+#mi-cal-grid-container .card{padding:.75rem!important;margin-bottom:0!important}
+#mi-cal-grid-container .cal-grid{gap:1px}
+#mi-cal-grid-container .cal-day{padding:4px 1px;font-size:11px}
+#mi-cal-grid-container .cal-head{font-size:9px;padding:2px 0}
+@media(max-width:700px){.dual-cal{grid-template-columns:1fr}#mi-cal-grid-container{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -347,31 +353,21 @@ tr:hover td{background:var(--gray-50)}
       <!-- MI CALENDARIO (agente) -->
       <div class="screen" id="screen-mi-calendario">
         <div class="page-header"><h2>Calendario de licencias</h2><p>Tus licencias registradas, presentadas y aprobadas</p></div>
-        <div class="card">
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <button class="btn btn-secondary btn-sm" onclick="miCalMove(-1)">‹</button>
-            <span style="font-size:13px;color:var(--gray-500)" id="mi-cal-title">—</span>
-            <button class="btn btn-secondary btn-sm" onclick="miCalMove(1)">›</button>
-          </div>
-          <div class="dual-cal">
-            <div class="dual-cal-month">
-              <div class="cal-nav-title" id="mi-cal-title-left">—</div>
-              <div class="cal-grid" id="mi-cal-grid"></div>
-            </div>
-            <div class="dual-cal-month">
-              <div class="cal-nav-title" id="mi-cal-title-right">—</div>
-              <div class="cal-grid" id="mi-cal-grid-2"></div>
-            </div>
-          </div>
-          <div class="cal-legend" style="margin-top:12px">
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fef08a;border:1px solid #ca8a04"></div>Registrada</div>
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fdba74;border:1px solid #ea580c"></div>Presentada</div>
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#bbf7d0;border:1px solid #16a34a"></div>Aprobada</div>
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ea580c"></div>Feriado</div>
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ede9fe"></div>Fin de semana</div>
-          </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+          <button class="btn btn-secondary btn-sm" onclick="miCalMove(-2)">‹‹ 2 meses atrás</button>
+          <span style="font-size:13px;font-weight:500;color:var(--gray-700)" id="mi-cal-title">—</span>
+          <button class="btn btn-secondary btn-sm" onclick="miCalMove(2)">2 meses adelante ››</button>
         </div>
-        <div id="mi-cal-detalle"></div>
+        <div id="mi-cal-grid-container" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+        </div>
+        <div class="cal-legend" style="margin-top:1rem;padding:0 .25rem;display:flex;flex-wrap:wrap;gap:10px">
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fef08a;border:1px solid #ca8a04"></div>Registrada</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fdba74;border:1px solid #ea580c"></div>Presentada</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#bbf7d0;border:1px solid #16a34a"></div>Aprobada</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ea580c"></div>Feriado</div>
+          <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ede9fe"></div>Fin de semana</div>
+        </div>
+        <div id="mi-cal-detalle" style="margin-top:1rem"></div>
       </div>
 
       <!-- SOLICITUDES ADMIN -->
@@ -623,7 +619,11 @@ async function initApp(){
   const badge=document.getElementById('top-badge');
   badge.textContent=isAdmin?'Administrativo':'Agente';
   badge.className='badge-role '+(isAdmin?'admin':'agent');
-  if(isAdmin)document.getElementById('nav-admin-section').style.display='block';
+  if(isAdmin){
+    document.getElementById('nav-admin-section').style.display='block';
+  } else {
+    document.getElementById('nav-admin-section').style.display='none';
+  }
   [config,feriados,jerarquia,secciones]=await Promise.all([
     api('getConfig'),
     api('getFeriados').then(f=>{const m={};f.forEach(x=>m[x.fecha]=x.descripcion);return m;}),
@@ -922,23 +922,37 @@ function pdfLAR(doc,data){
   const ag=currentUser;
   doc.addImage('data:image/jpeg;base64,'+PDF_BG.lar,'JPEG',0,0,210,297);
   const s=8.5;
-  pt(doc,data.dirigido_a||'',42.0,38.0,s,120);
-  pt(doc,ag.apellido+', '+ag.nombre,10.5,43.7,s,110);
-  pt(doc,ag.legajo,172.0,43.7,s);
-  pt(doc,ag.categoria||'',33.4,52.6,s,20);
-  pt(doc,String(data.dias_habiles),98.0,52.6,s);
-  pt(doc,numALetras(parseInt(data.dias_habiles||0)),107.0,52.6,s,25);
-  pt(doc,String(new Date().getFullYear()-1),107.0,61.5,s);
-  pt(doc,data.ciudad||'',44.0,64.5,s,40);
-  pt(doc,data.provincia||'',116.0,64.5,s,55);
-  pt(doc,data.domicilio||'',71.0,70.0,s,70);
-  pt(doc,data.codigo_postal||'',57.0,75.5,s);
-  pt(doc,normalizarFecha(data.fecha_inicio),10.5,88.0,s);
-  pt(doc,normalizarFecha(data.fecha_fin),59.0,88.0,s);
+  // Línea 1: Al Señor/a [destinatario] el/la que suscribe
+  pt(doc,data.dirigido_a||'',42.0,38.0,s,110);
+  // Línea 2: [nombre],  Legajo Nº: [legajo]
+  // El nombre va sobre los puntos largos, el legajo sobre los puntos cortos al final
+  pt(doc,ag.apellido+', '+ag.nombre,10.5,43.7,s,130);
+  // Línea 3: Legajo Nº: [legajo]  — la línea del legajo es la misma que el nombre
+  pt(doc,ag.legajo,175.0,43.7,s);
+  // Línea 4: Categoría: [cat], solicita se le concedan [letras] ([numero]) días
+  pt(doc,ag.categoria||'',33.4,52.6,s,18);
+  // Días en letras van sobre los puntos largos (entre "concedan" y el paréntesis)
+  pt(doc,numALetras(parseInt(data.dias_habiles||0)),84.0,52.6,s,35);
+  // Número entre el paréntesis
+  pt(doc,String(data.dias_habiles),135.0,52.6,s);
+  // Línea 5: correspondiente al año [año]
+  pt(doc,String(new Date().getFullYear()-1),107.0,59.5,s);
+  // Línea 6: ciudad de [ciudad], Provincia de [provincia]
+  pt(doc,data.ciudad||'',44.0,66.5,s,38);
+  pt(doc,data.provincia||'',116.0,66.5,s,55);
+  // Línea 7: fijando domicilio en la calle [domicilio]
+  pt(doc,data.domicilio||'',71.0,73.5,s,70);
+  // Línea 8: Nº ... Código Postal [cp] comenzando...
+  pt(doc,data.codigo_postal||'',57.0,80.5,s);
+  // Línea 9-10: fecha inicio hasta fecha fin
+  pt(doc,normalizarFecha(data.fecha_inicio),10.5,87.5,s);
+  pt(doc,normalizarFecha(data.fecha_fin),59.0,87.5,s);
+  // Observaciones: checkboxes fracción
   const frac=data.fraccion||'';
   if(frac.includes('1'))pt(doc,'X',90.0,94.5,7);
   if(frac.includes('2'))pt(doc,'X',112.5,94.5,7);
   if(frac.includes('3'))pt(doc,'X',134.0,94.5,7);
+  // Radiólogo No
   pt(doc,'X',183.5,94.5,7);
 }
 
@@ -1026,27 +1040,76 @@ async function cargarMisLicencias(){
   }catch(e){cont.innerHTML='<p style="color:var(--red);font-size:12px">Error</p>';}
 }
 
-function miCalMove(d){miCalMonth+=d;if(miCalMonth>11){miCalMonth=0;miCalYear++;}if(miCalMonth<0){miCalMonth=11;miCalYear--;}recargarFeriados().then(()=>renderMiCal());}
+function miCalMove(d){
+  miCalMonth+=d;
+  // Ajustar año cuando el mes sale del rango
+  while(miCalMonth>11){miCalMonth-=12;miCalYear++;}
+  while(miCalMonth<0){miCalMonth+=12;miCalYear--;}
+  renderMiCal();
+}
 
 async function renderMiCal(){
-  const m1=miCalMonth,y1=miCalYear;
-  let m2=m1+1,y2=y1;if(m2>11){m2=0;y2++;}
-  // Título centrado
-  const titleEl=document.getElementById('mi-cal-title');
-  if(titleEl)titleEl.textContent=MESES[m1]+' '+y1+' — '+MESES[m2]+' '+y2;
-  const leftEl=document.getElementById('mi-cal-title-left');if(leftEl)leftEl.textContent=MESES[m1]+' '+y1;
-  const rightEl=document.getElementById('mi-cal-title-right');if(rightEl)rightEl.textContent=MESES[m2]+' '+y2;
+  // Cargar solicitudes del agente
   let misSol=[];
   try{misSol=await api('getSolicitudesAgente',{agente_id:currentUser.id});}catch(e){}
-  const detalle1=renderCalMesAgente('mi-cal-grid',y1,m1,misSol)||[];
-  const detalle2=renderCalMesAgente('mi-cal-grid-2',y2,m2,misSol)||[];
-  // Combinar detalles sin duplicados
+  await recargarFeriados();
+
+  const container=document.getElementById('mi-cal-grid-container');
+  const titleEl=document.getElementById('mi-cal-title');
   const detalleMap={};
-  [...detalle1,...detalle2].forEach(r=>{detalleMap[r.id]=r;});
-  const detalle=Object.values(detalleMap);
+
+  // Generar 12 meses en pares a partir de miCalMonth/miCalYear
+  const primeroMes=miCalMonth;
+  const primeroAnio=miCalYear;
+
+  // Título del rango
+  let m1=primeroMes,y1=primeroAnio;
+  let m12=primeroMes+11,y12=primeroAnio;
+  while(m12>11){m12-=12;y12++;}
+  titleEl.textContent=MESES[m1]+' '+y1+' — '+MESES[m12]+' '+y12;
+
+  // Limpiar container
+  container.innerHTML='';
+
+  for(let offset=0;offset<12;offset++){
+    let m=primeroMes+offset;
+    let y=primeroAnio;
+    while(m>11){m-=12;y++;}
+
+    // Crear card para este mes
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.cssText='padding:.75rem;margin-bottom:0';
+
+    // Título del mes
+    const titulo=document.createElement('div');
+    titulo.className='cal-nav-title';
+    titulo.style.cssText='text-align:center;margin-bottom:8px;font-size:12px;font-weight:600';
+    titulo.textContent=MESES[m]+' '+y;
+    card.appendChild(titulo);
+
+    // Grid del mes
+    const grid=document.createElement('div');
+    grid.className='cal-grid';
+    grid.id='mi-cal-grid-'+offset;
+    card.appendChild(grid);
+
+    container.appendChild(card);
+
+    // Renderizar el mes y recolectar detalles
+    const detalle=renderCalMesAgente('mi-cal-grid-'+offset,y,m,misSol)||[];
+    detalle.forEach(r=>{detalleMap[r.id]=r;});
+  }
+
+  // Mostrar detalle de licencias
   const cont=document.getElementById('mi-cal-detalle');
   const lbl={lar:'LAR','14f':'14F',invierno:'L.Invierno'};
-  cont.innerHTML=detalle.map(r=>'<div class="card" style="padding:.75rem 1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="badge badge-'+r.estado+'">'+r.estado+'</span><strong>'+(lbl[r.tipo]||r.tipo)+'</strong><span style="font-size:13px;color:var(--gray-600)">'+normalizarFecha(r.fecha_inicio)+' al '+normalizarFecha(r.fecha_fin)+'</span><span style="font-size:12px;color:var(--gray-500)">Dirigido a: '+r.dirigido_a+'</span></div>').join('');
+  const detalles=Object.values(detalleMap);
+  if(detalles.length===0){
+    cont.innerHTML='<p style="font-size:13px;color:var(--gray-500);text-align:center;padding:.5rem">No tenés licencias en este período</p>';
+  } else {
+    cont.innerHTML=detalles.map(r=>'<div class="card" style="padding:.75rem 1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:.5rem"><span class="badge badge-'+r.estado+'">'+r.estado+'</span><strong>'+(lbl[r.tipo]||r.tipo)+'</strong><span style="font-size:13px;color:var(--gray-600)">'+normalizarFecha(r.fecha_inicio)+' al '+normalizarFecha(r.fecha_fin)+'</span><span style="font-size:12px;color:var(--gray-500)">Dirigido a: '+r.dirigido_a+'</span></div>').join('');
+  }
 }
 
 async function cargarSolicitudes(){
