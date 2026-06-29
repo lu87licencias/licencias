@@ -186,8 +186,8 @@ tr:hover td{background:var(--gray-50)}
 .dual-cal{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
 .dual-cal-month{flex:1}
 .dual-cal-month .cal-nav-title{font-size:13px;font-weight:600;text-align:center;padding:4px 0;margin-bottom:8px}
-/* Calendario 12 meses (agente) */
-#mi-cal-grid-container{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+/* Calendario 12 meses (agente y solicitud) */
+#mi-cal-grid-container,#cal-grid-container{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 #mi-cal-grid-container .card{padding:.75rem!important;margin-bottom:0!important}
 #mi-cal-grid-container .cal-grid{gap:1px}
 #mi-cal-grid-container .cal-day{padding:4px 1px;font-size:11px}
@@ -299,24 +299,18 @@ tr:hover td{background:var(--gray-50)}
         </div>
         <div class="card">
           <div class="card-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Selección de días</div>
-          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <button class="btn btn-secondary btn-sm" onclick="calMove(-1)">‹</button>
-            <span style="font-size:13px;color:var(--gray-500)">Seleccioná el día de inicio</span>
-            <button class="btn btn-secondary btn-sm" onclick="calMove(1)">›</button>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+            <button class="btn btn-secondary btn-sm" onclick="calMove(-2)">‹‹ 2 meses</button>
+            <span style="font-size:13px;font-weight:500;color:var(--gray-700)" id="cal-title">—</span>
+            <button class="btn btn-secondary btn-sm" onclick="calMove(2)">2 meses ››</button>
           </div>
-          <div class="dual-cal">
-            <div class="dual-cal-month">
-              <div class="cal-nav-title" id="cal-title">—</div>
-              <div class="cal-grid" id="cal-grid"></div>
-            </div>
-            <div class="dual-cal-month">
-              <div class="cal-nav-title" id="cal-title-2">—</div>
-              <div class="cal-grid" id="cal-grid-2"></div>
-            </div>
-          </div>
+          <div id="cal-grid-container" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem"></div>
           <div class="cal-legend">
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue)"></div>Inicio/fin</div>
-            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Período</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue)"></div>Inicio/fin seleccionado</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:var(--blue-light);border:1px solid var(--blue)"></div>Período a tomar</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fef08a;border:1px solid #ca8a04"></div>Registrada</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#fdba74;border:1px solid #ea580c"></div>Presentada</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#bbf7d0;border:1px solid #16a34a"></div>Aprobada</div>
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ea580c"></div>Feriado</div>
             <div class="cal-legend-item"><div class="cal-legend-dot" style="background:#ede9fe"></div>Fin de semana</div>
           </div>
@@ -674,7 +668,14 @@ function cargarDestinatarios(){
 }
 
 async function cargarSaldo(){
-  try{saldo=await api('getSaldoLicencias',{agente_id:currentUser.id});actualizarAvailBox();actualizarFraccion();}
+  try{
+    saldo=await api('getSaldoLicencias',{agente_id:currentUser.id});
+    actualizarAvailBox();
+    actualizarFraccion();
+    // Cargar solicitudes para mostrar en calendario de solicitud
+    window._misSolicitudes=await api('getSolicitudesAgente',{agente_id:currentUser.id});
+    renderCal();
+  }
   catch(e){console.error('saldo:',e);}
 }
 
@@ -722,7 +723,12 @@ function actualizarFraccion(){
   document.getElementById('lar-dias-hint').textContent='Mínimo 5 días · Disponibles: '+saldo.lar.disponibles;
 }
 
-function calMove(d){calMonth+=d;if(calMonth>11){calMonth=0;calYear++;}if(calMonth<0){calMonth=11;calYear--;}recargarFeriados().then(()=>renderCal());}
+function calMove(d){
+  calMonth+=d;
+  while(calMonth>11){calMonth-=12;calYear++;}
+  while(calMonth<0){calMonth+=12;calYear--;}
+  recargarFeriados().then(()=>renderCal());
+}
 
 
 // Renderiza un mes completo en el grid indicado
@@ -779,15 +785,87 @@ function renderCalMesAgente(gridId,year,month,solicitudes){
 }
 
 function renderCal(){
-  // Mes actual
-  const m1=calMonth,y1=calYear;
-  // Mes siguiente
-  let m2=m1+1,y2=y1;
-  if(m2>11){m2=0;y2++;}
-  document.getElementById('cal-title').textContent=MESES[m1]+' '+y1;
-  const t2=document.getElementById('cal-title-2');if(t2)t2.textContent=MESES[m2]+' '+y2;
-  renderCalMes('cal-grid',y1,m1);
-  renderCalMes('cal-grid-2',y2,m2);
+  const container=document.getElementById('cal-grid-container');
+  if(!container)return;
+  container.innerHTML='';
+
+  // Calcular mes/año de inicio
+  const m0=calMonth, y0=calYear;
+
+  // Título rango
+  let mFin=m0+11, yFin=y0;
+  while(mFin>11){mFin-=12;yFin++;}
+  const titleEl=document.getElementById('cal-title');
+  if(titleEl)titleEl.textContent=MESES[m0]+' '+y0+' — '+MESES[mFin]+' '+yFin;
+
+  for(let offset=0;offset<12;offset++){
+    let m=m0+offset, y=y0;
+    while(m>11){m-=12;y++;}
+
+    const card=document.createElement('div');
+    card.className='card';
+    card.style.cssText='padding:.75rem;margin-bottom:0';
+
+    const titulo=document.createElement('div');
+    titulo.style.cssText='text-align:center;font-size:12px;font-weight:600;margin-bottom:6px;color:var(--gray-700)';
+    titulo.textContent=MESES[m]+' '+y;
+    card.appendChild(titulo);
+
+    const grid=document.createElement('div');
+    grid.className='cal-grid';
+    grid.id='cal-sol-grid-'+offset;
+    card.appendChild(grid);
+
+    container.appendChild(card);
+    renderCalMesSolicitud('cal-sol-grid-'+offset, y, m);
+  }
+}
+
+function renderCalMesSolicitud(gridId, year, month){
+  const grid=document.getElementById(gridId);
+  if(!grid)return;
+  grid.innerHTML=['Lu','Ma','Mi','Ju','Vi','Sá','Do'].map(d=>'<div class="cal-head">'+d+'</div>').join('');
+  const primer=new Date(year,month,1), dow=(primer.getDay()+6)%7;
+  for(let i=0;i<dow;i++)grid.innerHTML+='<div class="cal-day cal-empty"></div>';
+  const total=new Date(year,month+1,0).getDate();
+
+  for(let d=1;d<=total;d++){
+    const fecha=new Date(year,month,d);
+    const fstr=fmtDate(fecha);
+    const dw=fecha.getDay();
+    const esFS=dw===0||dw===6;
+    const esFer=!!feriados[fstr];
+    let cls='cal-day';
+    if(esFS)cls+=' cal-weekend';
+    if(esFer)cls+=' cal-holiday';
+
+    // Mostrar licencias existentes del agente
+    if(window._misSolicitudes){
+      const sol=window._misSolicitudes.find(r=>
+        r.estado!=='anulada'&&r.estado!=='rechazada'&&
+        estaEnRango(fstr,r.fecha_inicio,r.fecha_fin)
+      );
+      if(sol){
+        if(sol.estado==='registrada')cls+=' cal-absent-reg';
+        else if(sol.estado==='presentada')cls+=' cal-absent-pres';
+        else if(sol.estado==='aprobada')cls+=' cal-absent-apro';
+      }
+    }
+
+    // Selección actual
+    if(licTipo==='14f'){
+      if(diasSel14f.includes(fstr))cls+=' cal-selected';
+    } else {
+      if(selInicio&&fstr===fmtDate(selInicio))cls+=' cal-selected';
+      else if(selFin&&fstr===fmtDate(selFin))cls+=' cal-selected';
+      else if(selInicio&&selFin&&fecha>selInicio&&fecha<selFin)cls+=' cal-range';
+    }
+
+    const bloq=esFer||(licTipo==='invierno'&&config.invierno_solo_lunes==='true'&&!selInicio&&dw!==1);
+    if(bloq&&!esFS&&!esFer)cls+=' cal-disabled';
+
+    grid.innerHTML+='<div class="'+cls+'" data-fstr="'+fstr+'" data-fs="'+esFS+'" data-fer="'+esFer+'" onclick="clickDiaEl(this)">'+d+'</div>';
+  }
 }
 
 function clickDiaEl(el){
